@@ -23,22 +23,47 @@
               "src/assets"
             ],
             "styles": [
-              "src/styles.css"
+              "src/assets/css/vendors.min.css",
+              "src/assets/css/style.css",
+              "src/assets/css/responsive.css",              
+              "src/assets/css/responsive.scss",
+              "src/assets/css/bootstrap.min.css",
+              "src/assets/css/style.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/jquery/dist/jquery.min.js",
+              "src/assets/js/custom.js",
+              "src/assets/js/jvectormap-1.2.2.min.js",
+              "src/assets/js/vendors.min.js",
+              "src/assets/js/chartjs/chartjs.min.js",
+              "src/assets/js/apexcharts/apexcharts.min.js",
+              "src/assets/js/apexcharts/apexcharts-stock-prices.js",
+              "src/assets/js/apexcharts/apexcharts-irregular-data-series.js",
+              "src/assets/js/apexcharts/apex-custom-line-chart.js",
+              "src/assets/js/apexcharts/apex-custom-pie-donut-chart.js",
+              "src/assets/js/apexcharts/apex-custom-area-charts.js",
+              "src/assets/js/apexcharts/apex-custom-column-chart.js",
+              "src/assets/js/apexcharts/apex-custom-bar-charts.js",
+              "src/assets/js/apexcharts/apex-custom-mixed-charts.js",
+              "src/assets/js/apexcharts/apex-custom-radialbar-charts.js",
+              "src/assets/js/apexcharts/apex-custom-radar-chart.js",
+              "src/assets/js/jvectormap-world-mill-en.js"
+
+              
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumWarning": "5mb",
+                  "maximumError": "10mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "5mb",
+                  "maximumError": "10mb"
                 }
               ],
               "fileReplacements": [
@@ -90,9 +115,12 @@
               "src/assets"
             ],
             "styles": [
-              "src/styles.css"
+              "src/assets/css/vendors.min.css",
+              "src/assets/css/style.css",
+              "src/assets/css/responsive.css"
             ],
-            "scripts": []
+            "scripts": [
+            ]
           }
         }
       }

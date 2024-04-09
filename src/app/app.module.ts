@@ -13,6 +13,7 @@ import { UpdateDurationPipe } from './update-duration.pipe';
 import { ReactiveFormsModule } from '@angular/forms';
 import { DemandeListComponent } from './demande-list/demande-list.component';
 import { EditDemandeComponent } from './edit-demande/edit-demande.component';
+import { RegisterComponent } from './register/register.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -24,6 +25,7 @@ import { EditDemandeComponent } from './edit-demande/edit-demande.component';
     UpdateDurationPipe,
     DemandeListComponent,
     EditDemandeComponent,
+    RegisterComponent,
     
   ],
   imports: [

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zxx">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <title>S'authentifier</title>
+
+        <link rel="icon" type="image/png" href="assets/img/favicon.png">
+    </head>
+
+    <body>
+
+        <!-- Start Login Area -->
+        <div class="login-area">
+            <div class="d-table">
+                <div class="d-table-cell">
+                    <div class="login-form">
+
+                        <h2>Bienvenue</h2>
+
+                        <form   #registerForm="ngForm" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                            <div class="form-group">
+                                <input type="text" class="form-control" name="email" id="email" formControlName="email" placeholder="Email">
+                                <span class="label-title"><i class='bx bx-user'></i></span>
+                            </div>
+
+                            <div class="form-group">
+                                <input type="password" class="form-control" name="password" id="password" formControlName="password" placeholder="Password">
+                                <span class="label-title"><i class='bx bx-lock'></i></span>
+                            </div>
+
+                    
+
+                            <button type="submit" class="login-btn">S'authentifier</button>
+
+                            <p class="mb-0">Pas de compte? <a href="/register">S'inscrire</a></p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>

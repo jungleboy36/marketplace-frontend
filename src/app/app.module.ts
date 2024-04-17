@@ -14,6 +14,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { DemandeListComponent } from './demande-list/demande-list.component';
 import { EditDemandeComponent } from './edit-demande/edit-demande.component';
 import { RegisterComponent } from './register/register.component';
+import { LoginComponent } from './login/login.component';
+import { ProfileComponent } from './profile/profile.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -26,6 +28,9 @@ import { RegisterComponent } from './register/register.component';
     DemandeListComponent,
     EditDemandeComponent,
     RegisterComponent,
+    LoginComponent,
+    ProfileComponent,
+    
     
   ],
   imports: [
@@ -34,6 +39,7 @@ import { RegisterComponent } from './register/register.component';
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    
     
   ],
   providers: [],

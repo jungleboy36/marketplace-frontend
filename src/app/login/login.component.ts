@@ -34,13 +34,24 @@ export class LoginComponent {
           this.router.navigate(['/offers']);
         },
         error => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Login Failed',
-            text: 'Invalid email or password. Please try again.',
-            confirmButtonText: 'OK'
-          });
-        }
+          // Handle failed login
+          const errorMessage = error?.error?.message;
+          if (errorMessage === 'Account disabled') {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Connexion échouée',
+                  text: 'Votre compte a été désactivé.',
+                  confirmButtonText: 'OK'
+              });
+          } else {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Connexion échouée',
+                  text: 'Une erreur est survenue lors de la connexion. Veuillez réessayer plus tard.',
+                  confirmButtonText: 'OK'
+              });
+          }
+      }
       );
     }
   }

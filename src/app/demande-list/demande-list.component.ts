@@ -16,6 +16,7 @@ export class DemandeListComponent implements OnInit {
   showAddOfferModal: boolean = false;
   newDemande: any = { title: '', description: '' };
   demandeDetails : any = { title: '', description: '' };
+  loading : boolean = true;
 
   offerForm!: FormGroup ;
   @ViewChild('cancelButton') cancelButton: ElementRef | undefined;
@@ -51,9 +52,13 @@ closeAddOfferModal() {
     this.demandeService.getDemandes().subscribe(
       (demandes: any[]) => {
         this.demandes = demandes;
+        this.loading = false ;
+
       },
       (error) => {
         this.errorMessage = 'Error fetching offers: ' + error.message;
+        this.loading = false ;
+
       }
     );
   }

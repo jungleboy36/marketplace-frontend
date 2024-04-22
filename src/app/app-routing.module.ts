@@ -11,18 +11,19 @@ import { ProfileComponent } from './profile/profile.component';
 import { AdminCompaniesComponent } from './admin-companies/admin-companies.component';
 import { ForbiddenComponent } from './forbidden/forbidden.component';
 import { AdminClientsComponent } from './admin-clients/admin-clients.component';
+import { DatePipe } from '@angular/common';
 const routes: Routes = [
 
 {path:'offers',
 children :[
-  {path:'', component: OfferListComponent , canActivate: [AuthGuard], data: { expectedRole: 'client' }},
+  {path:'', component: OfferListComponent , canActivate: [AuthGuard], data: { expectedRole: ['client','company'] }},
 ]
 },
 
-  {path:'demandes', component: DemandeListComponent , canActivate: [AuthGuard]},
-  {path:'edit-demande/:id',component:EditDemandeComponent, canActivate: [AuthGuard]},
-  {path:'edit-offer/:id',component:EditOfferComponent, canActivate: [AuthGuard]},
-  {path:'profile', component:ProfileComponent, canActivate:[AuthGuard] },
+  {path:'demandes', component: DemandeListComponent , canActivate: [AuthGuard], data: { expectedRole: ['client','company'] }},
+  {path:'edit-demande/:id',component:EditDemandeComponent, canActivate: [AuthGuard],data: { expectedRole: 'client' }},
+  {path:'edit-offer/:id',component:EditOfferComponent, canActivate: [AuthGuard],data: { expectedRole: 'company' }},
+  {path:'profile', component:ProfileComponent, canActivate:[AuthGuard] , data: { expectedRole: ['client','company']}},
   {path:'register',component:RegisterComponent},
   {path:'forbidden',component:ForbiddenComponent},
   {path:'login',component:LoginComponent},
@@ -33,12 +34,17 @@ children :[
   {path:'clients',component:AdminClientsComponent , canActivate: [AuthGuard], data: { expectedRole: 'admin' }},
 
 ]},
-  { path: '**', redirectTo: '/login', pathMatch: 'full' } // Redirect to '/offers' for unmatched routes
+  { path: '**', redirectTo: '/login', pathMatch: 'full' }
+
 
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
+  providers: [
+    DatePipe,
+    // Other providers
+  ],
 })
 export class AppRoutingModule { }

@@ -16,9 +16,8 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit(): void {
       // Retrieve user info from local storage
-      const userInfo = localStorage.getItem('userInfo');
-      this.userInfo = userInfo ? JSON.parse(userInfo) : null;
-
+        this.authService.infoUser =  this.authService.getInfoFromToken(this.authService.getToken());
+        console.log('get info from token : ',  this.authService.getInfoFromToken(this.authService.getToken()));
       const uid = this.authService.getUserId();
       this.profileService.getUserProfile(uid!).subscribe(
         data => {

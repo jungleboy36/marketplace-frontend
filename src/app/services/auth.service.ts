@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
+import { AuthGuard } from './AuthGuard';
 
 @Injectable({
   providedIn: 'root'
@@ -19,12 +20,12 @@ export class AuthService {
   public infoUser : any = null;
 
   public token: string | null = null;
-
   constructor(private http: HttpClient, private router: Router) {
     // Load user info from local storage when the service is instantiated
     this.loadUserInfo();
+    //
+    
   }
-
   // Register a new user
   register(formData: FormData): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'register/', formData);
@@ -38,10 +39,9 @@ export class AuthService {
           // Store the token in local storage
           this.token = response.token;
           localStorage.setItem('token', this.token!);
-
           // Update the logged-in state
           this.isLoggedInSubject.next(true);
-
+          
           // Load user info if available
         
         }
@@ -90,28 +90,59 @@ export class AuthService {
     }
   } */
 
-  private getInfoFromToken(token: string | null): string[] | null {
-    if (!token) {
-        return null;
-    }
+getUserId() : string {
+  return this.getInfoFromToken(this.getToken()).uid;
+}
 
-    try {
-        // Decode the token using jwt-decode and extract the role
-        const decodedToken: any = jwtDecode(token);
-        this.infoUser.id = decodedToken.uid;
-        this.infoUser.display_name = decodedToken.display_name;
-        this.infoUser.email = decodedToken.email;
-        return this.infoUser;
-    } catch (error) {
-        console.error('Error decoding token:', error);
-        return null;
+
+public getInfoFromToken(token: string | null): any | null {
+  if (!token) {
+      console.log('No token provided');
+      return null; 
     }
+     if (!this.infoUser) {
+            this.infoUser = {};
+        }
+  try {
+      // Decode the token using jwt-decode
+      const decodedToken: any = jwtDecode(token);
+      
+      if (!decodedToken.uid || !decodedToken.display_name || !decodedToken.email) {
+          console.log('Token is missing expected fields');
+          return null;
+      
+      }
+      this.infoUser.uid = decodedToken.uid;
+      this.infoUser.display_name = decodedToken.display_name;
+      console.log('Display name:', decodedToken.display_name);
+      this.infoUser.email = decodedToken.email;
+
+      return this.infoUser;
+  } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
   }
-
+}
 
 
 
 getToken() : string | null {
   return localStorage.getItem('token');
+}
+
+
+public getRoleFromToken(token: string | null): string | null {
+  if (!token) {
+      return null;
+  }
+
+  try {
+      // Decode the token using jwt-decode and extract the role
+      const decodedToken: any = jwtDecode(token);
+      return decodedToken.role || null;
+  } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+  }
 }
 }

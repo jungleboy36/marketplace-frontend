@@ -18,8 +18,7 @@
             </div>
             
             <form class="nav-search-form d-none ml-auto d-md-block">
-                <label><i class='bx bx-search'></i></label>
-                <input type="text" class="form-control" placeholder="Search here...">
+               
             </form>
 
             <ul class="navbar-nav right-nav align-items-center">
@@ -222,7 +221,7 @@
                 <li class="nav-item dropdown profile-nav-item" *ngIf="authService.isLoggedIn$ | async">
                     <a href="#" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <div class="menu-profile">
-                            <span class="name">Hi! {{ authService.userInfo.display_name }}</span>
+                            <span class="name">Hi! {{ authService.infoUser.display_name }}</span>
                             <img [src]="profileImageUrl" alt="Profile Image" *ngIf="profileImageUrl" class="rounded-circle" >
                         </div>
                     </a>
@@ -234,8 +233,8 @@
                             </div>
                 
                             <div class="info text-center">
-                                <span class="name">{{ authService.userInfo.display_name }}</span>
-                                <p class="mb-3 email">{{ authService.userInfo.email }}</p>
+                                <span class="name">{{ authService.infoUser.display_name }}</span>
+                                <p class="mb-3 email">{{ authService.infoUser.email }}</p>
                             </div>
                         </div>
                 

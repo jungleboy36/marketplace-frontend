@@ -16,6 +16,7 @@ export class ProfileComponent implements OnInit {
   profileForm!: FormGroup;
   profileImageBase64: string | null = null; // Store Base64 image
   maxImageSizeKB = 850; // Maximum allowed Base64 image size in KB
+  loading: boolean = false;
 
   constructor(
     private profileService: ProfileService,
@@ -40,9 +41,7 @@ export class ProfileComponent implements OnInit {
         this.profileForm.patchValue(this.userProfile);
 
         // If image exists, set it as Base64 format
-        if (data.image) {
-          this.profileImageBase64 = data.image;
-        }
+       
       },
       error => {
         console.error('Error fetching user profile', error);
@@ -67,68 +66,75 @@ export class ProfileComponent implements OnInit {
     const input = event.target as HTMLInputElement;
 
     if (input.files && input.files[0]) {
-        const file = input.files[0];
-        
-        // Create a FileReader
-        const reader = new FileReader();
+      const file = input.files[0];
 
-        reader.onload = () => {
-          // Assign the Base64 string to the profileImageBase64 variable
-          this.profileImageBase64 = reader.result as string;
+      // Create a FileReader
+      const reader = new FileReader();
 
-          // Calculate the size of the Base64 image in kilobytes
-          const base64Length = this.profileImageBase64.length;
-          const imageSizeKB = (base64Length * 3 / 4) / 1024;
+      reader.onload = () => {
+        // Assign the Base64 string to the profileImageBase64 variable
+        this.profileImageBase64 = reader.result as string;
 
-          // Check if the image size exceeds the maximum limit
-          if (imageSizeKB > this.maxImageSizeKB) {
-            Swal.fire({
-              title: 'Image too large',
-              text: `The image size exceeds the maximum limit of ${this.maxImageSizeKB} KB. Please choose a smaller image.`,
-              icon: 'warning',
-              confirmButtonText: 'OK'
-            });
+        // Calculate the size of the Base64 image in kilobytes
+        const base64Length = this.profileImageBase64.length;
+        const imageSizeKB = (base64Length * 3 / 4) / 1024;
 
-            // Clear the image input
-            this.profileForm.get('image')?.setValue(null);
-            this.profileImageBase64 = null;
-          } else {
-            // Update the profile form with the Base64 encoded image
-            this.profileForm.get('image')?.setValue(this.profileImageBase64);
-          }
-        };
+        // Check if the image size exceeds the maximum limit
+        if (imageSizeKB > this.maxImageSizeKB) {
+          Swal.fire({
+            title: 'Image too large',
+            text: `The image size exceeds the maximum limit of ${this.maxImageSizeKB} KB. Please choose a smaller image.`,
+            icon: 'warning',
+            confirmButtonText: 'OK'
+          });
 
-        // Read the file as a Data URL (Base64 format)
-        reader.readAsDataURL(file);
+          // Clear the image input
+          this.profileForm.get('image')?.setValue(null);
+          this.profileImageBase64 = null;
+        } else {
+          // Update the profile form with the Base64 encoded image
+          this.profileForm.get('image')?.setValue(this.profileImageBase64);
+        }
+      };
+
+      // Read the file as a Data URL (Base64 format)
+      reader.readAsDataURL(file);
     }
   }
 
   // Method to handle profile form submission
   onSubmitProfileForm() {
+    this.loading = true;
     if (this.profileForm.valid) {
         // Get the form data
         const updatedData = this.profileForm.value;
 
         // Include the profile image data if available
         if (this.profileImageBase64) {
-          updatedData.image = this.profileImageBase64;
+            updatedData.image = this.profileImageBase64;
         }
 
         // Update the user profile data
         this.profileService.updateUserProfile(this.uid!, updatedData).subscribe(
             () => {
                 // Profile updated successfully
+                this.loading = false;
                 Swal.fire({
                     title: 'Success!',
                     text: 'Profile updated successfully',
                     icon: 'success',
                     confirmButtonText: 'OK'
                 }).then(() => {
+                    // Reset the profile image preview
+                    this.profileImageBase64 = null;
+
                     // Reload the data after the alert is closed
                     this.loadProfileData();
                 });
             },
             error => {
+                this.loading = false;
+
                 // Error updating user profile
                 console.error('Error updating user profile', error);
                 Swal.fire({
@@ -140,6 +146,8 @@ export class ProfileComponent implements OnInit {
             }
         );
     } else {
+        this.loading = false;
+
         console.error('Form is not valid');
         Swal.fire({
             title: 'Invalid form',
@@ -150,17 +158,18 @@ export class ProfileComponent implements OnInit {
     }
 }
 
-// Method to reload profile data
-loadProfileData() {
+
+  // Method to reload profile data
+  loadProfileData() {
     this.profileService.getUserProfile(this.uid!).subscribe(
-        data => {
-            this.userProfile = data;
-            // Populate the form with the updated user data
-            this.profileForm.patchValue(this.userProfile);
-        },
-        error => {
-            console.error('Error fetching user profile', error);
-        }
+      data => {
+        this.userProfile = data;
+        // Populate the form with the updated user data
+        this.profileForm.patchValue(this.userProfile);
+      },
+      error => {
+        console.error('Error fetching user profile', error);
+      }
     );
-}
+  }
 }

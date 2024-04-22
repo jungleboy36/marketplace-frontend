@@ -5,135 +5,169 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
- 
-
     <link rel="icon" type="image/png" src="../../assets/img/favicon.png">
 </head>
-<div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
 <body>
-  <app-sidebar></app-sidebar>
-  <div class="main-content d-flex flex-column">
-  <app-navbar></app-navbar>
-<br><h2>Offres</h2>
-    <!-- Offer modal -->
-<!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" style="width: 165px;"  data-toggle="modal" data-target="#basicModal">
-    + Ajouter une offre
-</button>
+    <app-sidebar></app-sidebar>
 
-<!-- Modal -->
-<div class="modal fade" id="basicModal" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Offer</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Form for adding an offer -->
-                <form (ngSubmit)="addOffer()" [formGroup]="offerForm">
-                    <div class="form-group">
-                        <label>Title</label>
-                        <input type="text" class="form-control" [(ngModel)]="newOffer.title" formControlName="title" name="title" required>
+    <div class="main-content d-flex flex-column">
+        <app-navbar></app-navbar>
+
+        <br>
+        <h2>Offres</h2>
+
+        <!-- Offer modal -->
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary" style="width: 165px;" data-toggle="modal" data-target="#basicModal" *ngIf="isCompany()">
+            + Ajouter une offre
+        </button>
+            
+        <div style="width:200px; margin-left:1000px">
+            <select class="form-control inline-block" [(ngModel)]="filterOption" (change)="applyFilter()" style="margin-bottom: 10px;">
+                <option value="all" selected>Tous les offres</option>
+                <option value="mine">Mes offres</option>
+              </select>
+            <input type="text" class="form-control inline-block" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="searchOffers()" >
+        </div>
+        <!-- Modal -->
+        <div class="modal fade" id="basicModal" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Offer</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea class="form-control" rows="4" [(ngModel)]="newOffer.description" formControlName="description" name="description" required></textarea>
+                    <div class="modal-body">
+                        <!-- Form for adding an offer -->
+                        <form (ngSubmit)="addOffer()" [formGroup]="offerForm">
+                            <div class="form-group">
+                                <label>Title</label>
+                                <input type="text" class="form-control" [(ngModel)]="newOffer.title" formControlName="title" name="title" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea class="form-control" rows="4" [(ngModel)]="newOffer.description" formControlName="description" name="description" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Departure Date</label>
+                                <input type="datetime-local" class="form-control" [(ngModel)]="newOffer.depart_date" formControlName="depart_date" name="depart_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Arrival Date</label>
+                                <input type="datetime-local" class="form-control" [(ngModel)]="newOffer.arrival_date" formControlName="arrival_date" name="arrival_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Itinerary</label>
+                                <textarea class="form-control" rows="4" [(ngModel)]="newOffer.itinerary" formControlName="itinerary" name="itinerary"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Volume</label>
+                                <input type="number" class="form-control" [(ngModel)]="newOffer.volume" formControlName="volume" name="volume">
+                            </div>
+                            <div class="form-group">
+                                <label>Price</label>
+                                <input type="number" class="form-control" [(ngModel)]="newOffer.price" formControlName="price" name="price">
+                            </div>
+                            <!-- Add more fields as needed -->
+                        </form>
                     </div>
-                    <!-- Add more fields as needed -->
-                </form>
+                    <div class="modal-footer">
+                        <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid" (click)="addOffer()">Ajouter</button>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary"  [disabled]="!offerForm.valid" (click)="addOffer()">Ajouter</button>
+        </div>
+
+        <!-- Info Modal -->
+        <div class="modal fade" id="infoModal" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Details du l'offre</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Display offer details -->
+                        <p>
+                            Titre : {{offerDetails.title}}
+                            <br>
+                            Description : {{offerDetails.description}}
+                            <br>
+                            Date Départ : {{offerDetails.depart_date_formatted}}
+                            <br>
+                            Date Arrivé : {{offerDetails.arrival_date_formatted}}
+                            <br>
+                            Itineraire : {{offerDetails.itinerary}}
+                            <br>
+                            Volume : {{offerDetails.volume}}
+                            <br>
+                            Prix : {{offerDetails.price}}
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid">Contacter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Info Modal -->
+
+        <!-- Existing code for displaying offers -->
+        <hr>
+        <br>
+        <div class="d-flex justify-content-center" *ngIf="loading">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6" *ngFor="let offer of filteredOffers  ">
+                <div class="card mb-30">
+                    <small *ngIf="offer.creationDate">{{ offer.creationDate | creationDate }}</small>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>{{offer.title}}</h3>
+                        <br>
+                        <div class="dropdown">
+                            <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class='bx bx-dots-horizontal-rounded'></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item d-flex align-items-center" data-toggle="modal" data-target="#infoModal" (click)="openInfoModal(offer.id)">
+                                    <i class='bx bx-show' style="color: rgb(76, 76, 187);"></i> Voir
+                                </a>
+                                <a  *ngIf="isCompany() && belongs(offer.user_id)" class="dropdown-item d-flex align-items-center" href="edit-offer/{{offer.id}}">
+                                    <i class='bx bx-edit-alt' style="color: rgb(132, 159, 132);"></i> Editer
+                                </a>
+                                <a  *ngIf="isCompany() && belongs(offer.user_id)" class="dropdown-item d-flex align-items-center" (click)="confirmDelete(offer.id)">
+                                    <i class='bx bx-trash' style="color: red;"></i> Supprimer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <p>{{offer.description}}</p>
+                    </div>
+
+                    <div class="card-footer" *ngIf="offer.updateDate">
+                        <small>Derniere mise a jour: {{ offer.updateDate | updateDuration }}</small>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!--Info Modal-->
-<div class="modal fade" id="infoModal" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Details du l'offre</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Form for adding an offer -->
-             <p>
-                Titre : {{offerDetails.title}}
-                <br>
-                description : {{offerDetails.description}}
-             </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary"  [disabled]="!offerForm.valid" >Contacter</button>
-            </div>
-        </div>
+    <div *ngIf="offers.length === 0 && !errorMessage" class="loading-message">
+        Loading offers...
     </div>
-</div>
-
-<!--End Info Modal-->
-
-
-    <!-- Your existing code for displaying offers -->
-<hr><br>
-<div class="row">
-  <div class="col-lg-4 col-md-6" *ngFor="let offer of offers">
-      <div class="card mb-30">
-        <small *ngIf="offer.creationDate">{{ offer.creationDate | creationDate }}</small>
-          <div class="card-header d-flex justify-content-between align-items-center">
-              <h3>{{offer.title}}</h3>
-              <br>
-              <div class="dropdown">
-                  <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <i class='bx bx-dots-horizontal-rounded' ></i>
-                  </button>
-                  <div class="dropdown-menu">
-                      <a class="dropdown-item d-flex align-items-center"  data-toggle="modal" data-target="#infoModal" (click)="openInfoModal(offer.id)">
-                          <i class='bx bx-show'></i> View
-                      </a>
-                      <a class="dropdown-item d-flex align-items-center"  href="edit-offer/{{offer.id}}">
-                          <i class='bx bx-edit-alt'></i> Edit
-                      </a>
-                      <a class="dropdown-item d-flex align-items-center" (click)="confirmDelete(offer.id)" >
-                          <i class='bx bx-trash'></i> Delete
-                      </a>
-                  
-                  </div>
-              </div>
-          </div>    
-          
-          <div class="card-body">
-              <p>{{offer.description}}</p>
-                
-             
-          </div>
-
-          <div class="card-footer" *ngIf="offer.updateDate">
-            <small >Derniere mise a jour: {{ offer.updateDate | updateDuration }}</small>
-          </div>
-      </div>
-  </div>
-
-  
-
-
-</div>
-
-</div>
-
-
-<div *ngIf="offers.length === 0 && !errorMessage" class="loading-message">
-  Loading offers...
-</div>
 
 </body>
+
 </html>

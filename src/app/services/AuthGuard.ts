@@ -25,7 +25,7 @@ export class AuthGuard implements CanActivate {
         console.log("*** token :", this.authService.getToken());
 
         // Check if the user's role matches the expected role
-        if (userRole === expectedRole) {
+        if (userRole && expectedRole.includes(userRole)) {
             console.log('Access granted');
             return true;
         } else {
@@ -42,7 +42,7 @@ export class AuthGuard implements CanActivate {
   }
 
   // Helper function to decode the JWT token and extract the user's role
-  private getRoleFromToken(token: string | null): string | null {
+  public getRoleFromToken(token: string | null): string | null {
     if (!token) {
         return null;
     }
@@ -69,5 +69,9 @@ export class AuthGuard implements CanActivate {
         // Default redirection (home page)
         this.router.navigate(['/login']);
     }
+  }
+
+  getRole() : string {
+    return this.getRoleFromToken(this.authService.getToken())!;
   }
 }

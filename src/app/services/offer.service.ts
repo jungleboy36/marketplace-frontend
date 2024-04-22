@@ -17,6 +17,9 @@ export class OfferService {
     return this.http.get<any[]>(this.apiUrl+'/');
   }
 
+  getOffersById(user_id : string): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl+'/?user_id=' + user_id);
+  }
   addOffer(offerData: any): Observable<any> {
     return this.http.post<any>(this.apiUrl+'/', offerData)
         .pipe(

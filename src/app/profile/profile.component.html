@@ -23,7 +23,7 @@
                     <!-- <img [src]="userProfile.coverImage" class="cover-image" alt="Cover image"> -->
                     
                     <!-- Profile Image -->
-                    <div class="profile-image">
+                    <div class="profile-image" *ngIf="userProfile.image">
                         <img [src]="userProfile.image" class="rounded-circle" alt="Profile image">
                     </div>
                     
@@ -149,8 +149,14 @@
                                         </div>
 
                                         <!-- Submit button -->
-                                        <div class="btn-box text-right">
+                                        <div class="btn-box text-right" *ngIf="!loading">
                                             <button type="submit" class="submit-btn"><i class='bx bx-save'></i>
+                                                Enregistrer </button>
+                                        </div>
+                                        <div class="btn-box text-right" *ngIf="loading">
+                                            <button type="submit" class="submit-btn" disabled><div class="spinner-border text-light" role="status" style="width:15px;height:15px">
+                                                <span class="sr-only">Loading...</span>
+                                            </div>
                                                 Enregistrer </button>
                                         </div>
                                     </form>

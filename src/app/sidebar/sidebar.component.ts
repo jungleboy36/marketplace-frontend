@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -7,4 +8,5 @@ import { Component } from '@angular/core';
 })
 export class SidebarComponent {
 
+  constructor(private authService : AuthService){}
 }

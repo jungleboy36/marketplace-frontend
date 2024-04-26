@@ -16,7 +16,9 @@
 
         <br>
         <h2>Offres</h2>
-
+        <button type="button" (click)="refresh()" class="btn btn-primary" style="width: 50px;height:30px">
+           <i class="bx bx-revision"></i>
+        </button>
         <!-- Offer modal -->
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-primary" style="width: 165px;" data-toggle="modal" data-target="#basicModal" *ngIf="isCompany()">
@@ -24,11 +26,11 @@
         </button>
             
         <div style="width:200px; margin-left:1000px">
-            <select class="form-control inline-block" [(ngModel)]="filterOption" (change)="applyFilter()" style="margin-bottom: 10px;">
+            <select class="form-control inline-block" [(ngModel)]="filterOption" (change)="applyFilter()" style="margin-bottom: 10px;"  *ngIf="isCompany()">
                 <option value="all" selected>Tous les offres</option>
                 <option value="mine">Mes offres</option>
               </select>
-            <input type="text" class="form-control inline-block" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="searchOffers()" >
+            <input type="text" class="form-control inline-block" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="applyFilter()" >
         </div>
         <!-- Modal -->
         <div class="modal fade" id="basicModal" role="dialog" aria-hidden="true">
@@ -95,19 +97,19 @@
                     <div class="modal-body">
                         <!-- Display offer details -->
                         <p>
-                            Titre : {{offerDetails.title}}
+                            <b>Titre : </b>{{offerDetails.title}}
                             <br>
-                            Description : {{offerDetails.description}}
+                            <b>Description :</b> {{offerDetails.description}}
                             <br>
-                            Date Départ : {{offerDetails.depart_date_formatted}}
+                            <b>Date Départ : </b>{{offerDetails.depart_date_formatted}}
                             <br>
-                            Date Arrivé : {{offerDetails.arrival_date_formatted}}
+                            <b>Date Arrivé :</b> {{offerDetails.arrival_date_formatted}}
                             <br>
-                            Itineraire : {{offerDetails.itinerary}}
+                            <b> Itineraire : </b>{{offerDetails.itinerary}}
                             <br>
-                            Volume : {{offerDetails.volume}}
+                            <b>Volume :</b> {{offerDetails.volume}} m3
                             <br>
-                            Prix : {{offerDetails.price}}
+                            <b> Prix :</b> {{offerDetails.price}} €
                         </p>
                     </div>
                     <div class="modal-footer">
@@ -130,10 +132,17 @@
         <div class="row">
             <div class="col-lg-4 col-md-6" *ngFor="let offer of filteredOffers  ">
                 <div class="card mb-30">
-                    <small *ngIf="offer.creationDate">{{ offer.creationDate | creationDate }}</small>
+                    
+                    
+                    <div class="user-info">
+                        <a [href]="'/details/' + offer.user_id"><img [src]="offer.picture" alt="Profile Image" class="rounded-circle" style="width: 30px; height: 30px;">
+                        <span style="color: black;margin-top:5px;margin-left:5px" ><h6>{{ offer.username }}</h6></span></a>
+                    </div>
+                    <br>
                     <div class="card-header d-flex justify-content-between align-items-center">
+                        
                         <h3>{{offer.title}}</h3>
-                        <br>
+                        
                         <div class="dropdown">
                             <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class='bx bx-dots-horizontal-rounded'></i>
@@ -152,8 +161,18 @@
                         </div>
                     </div>
 
-                    <div class="card-body">
-                        <p>{{offer.description}}</p>
+                    <div class="card-body" style="margin-top: -20px;">
+                        <p><b>Description: </b>{{offer.description}}
+                           <br>
+                           <b>Itineraire: </b> {{offer.itinerary}}
+                           <br> 
+                           <b>Volume: </b> {{offer.volume}} (m3)<br>
+                           <b>Date depart: </b>Le {{offer.depart_date | date :'yyyy-MM-dd à HH:mm'}}<br>
+                           <b>Date arrivé: </b>Le {{offer.arrival_date | date :'yyyy-MM-dd à HH:mm'}}<br>
+
+                           <b>Prix: </b>{{offer.price}} €
+                        </p>
+                        
                     </div>
 
                     <div class="card-footer" *ngIf="offer.updateDate">
@@ -164,9 +183,7 @@
         </div>
     </div>
 
-    <div *ngIf="offers.length === 0 && !errorMessage" class="loading-message">
-        Loading offers...
-    </div>
+   
 
 </body>
 

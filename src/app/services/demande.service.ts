@@ -16,7 +16,9 @@ export class DemandeService {
   getDemandes(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl+'/');
   }
-
+  getDemandesById(id : string): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl+'/?user_id='+id);
+  }
   addDemande(demandeData: any): Observable<any> {
     return this.http.post<any>(this.apiUrl+'/', demandeData)
         .pipe(

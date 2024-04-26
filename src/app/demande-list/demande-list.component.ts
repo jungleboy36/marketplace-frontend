@@ -1,10 +1,11 @@
-// offer-list.component.ts
 
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { DemandeService } from '../services/demande.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../services/auth.service';
+import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-offer-list',
   templateUrl: './demande-list.component.html',
@@ -14,21 +15,54 @@ export class DemandeListComponent implements OnInit {
   len! : number ;
   errorMessage: string = '';
   showAddOfferModal: boolean = false;
-  newDemande: any = { title: '', description: '' };
-  demandeDetails : any = { title: '', description: '' };
+  searchQuery: string = '';
+  filterOption: string = 'all';
+  role : string | null = null;
+  newDemande:any = {
+    id: null,
+    title: null,
+    description: null,
+    creationDate: new Date(),
+    updateDate: new Date(),
+    date: new Date(),
+    depart: null,
+    destination: null,
+    volume: null,
+    price: null,
+  };  
+  demandeDetails: any = {
+    id: 0,
+    title: '',
+    description: '',
+    creationDate: new Date(),
+    updateDate: new Date(),
+    date: null,
+    depart: '',
+    destination: '',
+    volume: 0,
+    price: 0,
+  };
   loading : boolean = true;
 
-  offerForm!: FormGroup ;
+  demandeForm!: FormGroup ;
   @ViewChild('cancelButton') cancelButton: ElementRef | undefined;
+  filteredDemandes: any[] =[];
 
-  constructor(private demandeService : DemandeService, private router : Router,private formBuilder: FormBuilder) { }
+  constructor(private demandeService : DemandeService, private router : Router,private formBuilder: FormBuilder, private authService : AuthService, private datePipe : DatePipe) { }
 
   ngOnInit(): void {
+    this.role = this.authService.getRole();
     this.loadDemandes();
-    this.offerForm = this.formBuilder.group({
+    this.demandeForm = this.formBuilder.group({
       title: ['', Validators.required],
-      description: ['', Validators.required]
-      // Add more form controls as needed
+      description: ['', Validators.required],
+      depart: ['', Validators.required], // Adding depart field
+      destination: ['', Validators.required], // Adding destination field
+      volume: [null, Validators.required], // Adding volume field
+      price: [null, Validators.required],
+      date :[null,Validators.required],
+
+
     });
   }
   
@@ -40,19 +74,30 @@ export class DemandeListComponent implements OnInit {
     }
   }
 
-/*   openAddOfferModal() {
-    this.showAddOfferModal = true;
-}
-closeAddOfferModal() {
-  this.showAddOfferModal = false;
-} */
-
 
   loadDemandes() {
+    if (this.role == 'company')
     this.demandeService.getDemandes().subscribe(
       (demandes: any[]) => {
-        this.demandes = demandes;
+        this.demandes = demandes.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+        this.filteredDemandes = [...this.demandes];
         this.loading = false ;
+        this.applyFilter();
+
+      },
+      (error) => {
+        this.errorMessage = 'Error fetching offers: ' + error.message;
+        this.loading = false ;
+
+      }
+    );
+    else if (this.role == 'client')
+    this.demandeService.getDemandesById(this.authService.getUserId()).subscribe(
+      (demandes: any[]) => {
+        this.demandes = demandes.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+        this.filteredDemandes = [...this.demandes];
+        this.loading = false ;
+        this.applyFilter();
 
       },
       (error) => {
@@ -89,19 +134,19 @@ closeAddOfferModal() {
   }
 
   addDemande() {
-    if (this.offerForm.valid) {
+    if (this.demandeForm.valid) {
+    this.newDemande.user_id = this.authService.getUserId();
     this.demandeService.addDemande(this.newDemande).subscribe(
         (response) => {
             // Handle successful response
-            console.log('Offer added successfully:', response);
             // Show success message using SweetAlert
             Swal.fire({
                 icon: 'success',
-                title: 'Offre ajouté !',
+                title: 'Demande ajouté !',
                 showConfirmButton: false,
                 timer: 800 
             });
-            this.offerForm.reset();
+            this.demandeForm.reset();
             this.clickCancelButton();
             // Optionally, refresh the offer list after adding a new offer
             this.loadDemandes();
@@ -119,11 +164,29 @@ closeAddOfferModal() {
     // Retrieve offer details based on offerId
     this.demandeService.getDemandeById(demandeId).subscribe(
       (demandeDetails: any) => {
-      this.demandeDetails = demandeDetails;      },
+      this.demandeDetails = demandeDetails;  
+      this.demandeDetails.date_formatted = this.datePipe.transform(this.demandeDetails.date!, 'yyyy-MM-dd à HH:mm');
+    },
       (error) => {
         console.error('Error fetching offer details:', error);
         // Handle error if needed
       }
+    );
+  }
+
+  applyFilter() {
+    if (this.filterOption === 'mine' ) {
+      // Filter offers to show only the user's offers
+      this.filteredDemandes = this.demandes.filter(demande => demande.user_id === this.authService.getUserId());
+    } else {
+      // Show all offers
+      this.filteredDemandes = this.demandes;
+    }
+  
+    // Apply search query filter on filteredOffers
+    this.filteredDemandes = this.filteredDemandes.filter(offer =>
+      offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
     );
   }
 }

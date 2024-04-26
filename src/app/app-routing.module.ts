@@ -12,6 +12,10 @@ import { AdminCompaniesComponent } from './admin-companies/admin-companies.compo
 import { ForbiddenComponent } from './forbidden/forbidden.component';
 import { AdminClientsComponent } from './admin-clients/admin-clients.component';
 import { DatePipe } from '@angular/common';
+import { ProfileDetailsComponent } from './profile-details/profile-details.component';
+import { VerifyEmailComponent } from './verify-email/verify-email.component';
+import { TokenInterceptor } from './tokenInterceptor';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 const routes: Routes = [
 
 {path:'offers',
@@ -24,9 +28,11 @@ children :[
   {path:'edit-demande/:id',component:EditDemandeComponent, canActivate: [AuthGuard],data: { expectedRole: 'client' }},
   {path:'edit-offer/:id',component:EditOfferComponent, canActivate: [AuthGuard],data: { expectedRole: 'company' }},
   {path:'profile', component:ProfileComponent, canActivate:[AuthGuard] , data: { expectedRole: ['client','company']}},
+  { path: 'details/:id', component: ProfileDetailsComponent, canActivate:[AuthGuard] , data: { expectedRole: ['client','company']} },
   {path:'register',component:RegisterComponent},
   {path:'forbidden',component:ForbiddenComponent},
   {path:'login',component:LoginComponent},
+  {path:'verify-email',component:VerifyEmailComponent},
   {
     path:'admin',
     children :[
@@ -44,6 +50,11 @@ children :[
   exports: [RouterModule],
   providers: [
     DatePipe,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true
+    }
     // Other providers
   ],
 })

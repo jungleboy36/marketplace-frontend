@@ -19,6 +19,8 @@ export class OfferListComponent implements OnInit {
   searchQuery: string = '';
   filterOption: string = 'all';
   newOffer: any = {
+    user_id:'',
+    picture:'',
     title: '',
     description: '',
     depart_date: '',
@@ -41,6 +43,7 @@ export class OfferListComponent implements OnInit {
   };
   loading: boolean = true;
   public role : string | null = null ;
+
   constructor(
     private offerService: OfferService,
     private router: Router,
@@ -78,23 +81,31 @@ export class OfferListComponent implements OnInit {
   }
 
   loadOffers() {
-    this.offerService.getOffers().subscribe(
-      (offers: any[]) => {
-        this.offers = offers.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
-        this.filteredOffers = [...this.offers]; 
-       // Initialize filteredOffers with all offers
-        this.loading = false;
-        if(this.filterOption=="mine"){
-          this.applyFilter();}
-        
-        
-          
-      },
-      (error) => {
-        this.errorMessage = 'Error fetching offers: ' + error.message;
-        this.loading = false;
+    const cachedOffers = localStorage.getItem('cachedOffers');
+    if (cachedOffers) {
+      this.offers = JSON.parse(cachedOffers);
+      this.filteredOffers = [...this.offers];
+      this.loading = false;
+      if (this.filterOption == "mine") {
+        this.applyFilter();
       }
-    );
+    } else {
+      this.offerService.getOffers().subscribe(
+        (offers: any[]) => {
+          this.offers = offers.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+          this.filteredOffers = [...this.offers];
+          localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
+          this.loading = false;
+          if (this.filterOption == "mine") {
+            this.applyFilter();
+          }
+        },
+        (error) => {
+          this.errorMessage = 'Error fetching offers: ' + error.message;
+          this.loading = false;
+        }
+      );
+    }
   }
 
   confirmDelete(id: string) {
@@ -106,7 +117,9 @@ export class OfferListComponent implements OnInit {
   deleteOffer(id: string) {
     this.offerService.deleteOffer(id).subscribe(
       () => {
-        this.loadOffers();
+        this.offers = this.offers.filter(offer => offer.id !== id);
+        this.filteredOffers = [...this.offers];
+        localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
       },
       (error) => {
         console.error('Error deleting offer:', error);
@@ -132,7 +145,9 @@ export class OfferListComponent implements OnInit {
           this.offerForm.reset();
           this.clickCancelButton();
 
-          this.loadOffers();
+          this.offers.push(response);
+          this.filteredOffers = [...this.offers];
+          localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
         },
         (error) => {
           this.errorMessage = error;
@@ -155,7 +170,7 @@ export class OfferListComponent implements OnInit {
   }
 
   public isCompany() : boolean {
-    return (this.role = this.authService.getRoleFromToken(this.authService.getToken())) == 'company';
+    return  this.authService.getRole() == 'company';
   }
 
   public belongs(user_id : string) : boolean {
@@ -182,6 +197,27 @@ export class OfferListComponent implements OnInit {
     this.filteredOffers = this.filteredOffers.filter(offer =>
       offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
       offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+    );
+  }
+
+
+  refresh() {
+    this.loading = true;
+    this.filteredOffers = [ ]
+    this.offerService.getOffers().subscribe(
+      (offers: any[]) => {
+        this.offers = offers.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+        this.filteredOffers = [...this.offers];
+        localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
+        this.loading = false;
+        if (this.filterOption == "mine") {
+          this.applyFilter();
+        }
+      },
+      (error) => {
+        this.errorMessage = 'Error fetching offers: ' + error.message;
+        this.loading = false;
+      }
     );
   }
 }

@@ -3,6 +3,7 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { AuthService } from '../services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -12,53 +13,26 @@ import { AuthService } from '../services/auth.service';
 export class LoginComponent {
   loginForm: FormGroup;
   loading: boolean = false;
-  constructor(private formBuilder: FormBuilder, private authService: AuthService, private router: Router) {
+  private loadingSubscription: Subscription;
+    constructor(private formBuilder: FormBuilder, private authService: AuthService, private router: Router) {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     });
+    this.loadingSubscription = this.authService.loading$.subscribe(loading => {
+      this.loading = loading;
+    });
   }
 
+  ngOnDestroy(): void {
+    // Unsubscribe from loading subscription to prevent memory leaks
+    this.loadingSubscription.unsubscribe();
+  }
   onSubmit(): void {
-    this.loading = true;
-    if (this.loginForm.valid) {
+    if (this.loginForm.valid && !this.loading) {
       const { email, password } = this.loginForm.value;
-      this.authService.login(email, password).subscribe(
-        response => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Login Successful!',
-            text: 'You have successfully logged in.',
-            confirmButtonText: 'OK'
-          });
-          // Navigate to the desired page after successful login
-          if(response['role'] === 'admin'){
-          this.router.navigate(['/admin/companies']);}
-          else{
-            this.router.navigate(['/offers'])}
-        },
-        error => {
-          // Handle failed login
-          const errorMessage = error?.error?.message;
-          if (error.status === 403 && error.error && error.error.error === 'Account disabled') {
-            this.loading = false; 
-              Swal.fire({
-                  icon: 'error',
-                  title: 'Connexion échouée',
-                  text: 'Votre compte a été désactivé.',
-                  confirmButtonText: 'OK'
-              });
-          } else {
-            this.loading = false; 
-              Swal.fire({
-                  icon: 'error',
-                  title: 'Connexion échouée',
-                  text: 'Une erreur est survenue lors de la connexion. Veuillez réessayer plus tard.',
-                  confirmButtonText: 'OK'
-              });
-          }
-      }
-      );
+      this.authService.login(email,password);
+      
     }
   }
 }

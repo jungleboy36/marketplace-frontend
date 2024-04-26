@@ -8,6 +8,7 @@ import {jwtDecode} from 'jwt-decode';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
+  userRole : string | null = null;
   constructor(private authService: AuthService, private router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
@@ -19,18 +20,16 @@ export class AuthGuard implements CanActivate {
         const expectedRole = route.data['expectedRole'];
         console.log('Expected role:', expectedRole);
 
-        // Decode the token to extract the user's role
-        const userRole = this.getRoleFromToken(this.authService.getToken());
-        console.log('User role:', userRole);
-        console.log("*** token :", this.authService.getToken());
+        this.userRole = localStorage.getItem('role')
+        console.log('User role:', this.userRole);
 
         // Check if the user's role matches the expected role
-        if (userRole && expectedRole.includes(userRole)) {
+        if (this.userRole && expectedRole.includes(this.userRole)) {
             console.log('Access granted');
             return true;
         } else {
             console.log('Access denied');
-            this.handleForbiddenAccess(userRole!);
+            this.handleForbiddenAccess(this.userRole!);
             return false;
         }
     } else {
@@ -58,7 +57,7 @@ export class AuthGuard implements CanActivate {
   }
 
   // Handle access denial based on the user's role
-  private handleForbiddenAccess(userRole: string): void {
+  public handleForbiddenAccess(userRole: string): void {
     if (userRole === 'admin') {
         // Redirect to the admin dashboard
         this.router.navigate(['/admin/companies']);

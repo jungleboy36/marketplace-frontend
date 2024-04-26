@@ -1,0 +1,89 @@
+<html lang="fr">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>User Profile</title>
+    <link rel="icon" type="image/png" href="../../assets/img/favicon.png">
+</head>
+
+<body>
+    <app-sidebar></app-sidebar>
+    <div class="main-content d-flex flex-column">
+        <app-navbar></app-navbar>
+
+        <!-- Start Profile Area -->
+        <section class="profile-area">
+            <div class="profile-header mb-30">
+                <div class="user-profile-images"  style="margin-top: 100px;">
+                    <!-- Cover Image -->
+                    <!-- <img [src]="userProfile.coverImage" class="cover-image" alt="Cover image"> -->
+                    
+                    <!-- Profile Image -->
+                    <div class="profile-image" *ngIf="userProfile.image">
+                        <img [src]="userProfile.image" class="rounded-circle" alt="Profile image">
+                    </div>
+                    
+                    <div class="user-profile-text">
+                        <h3 style="color: black;">{{userProfile.name}}</h3>
+                        <span class="d-block" style="color: black;">{{userProfile.role}}</span>
+                    </div>
+                </div>
+
+                <div class="user-profile-nav">
+                    <ul class="nav nav-tabs" role="tablist">
+                     
+                       
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-9">
+                    <div class="tab-content">
+
+                        <!-- About Tab -->
+                        <div class="tab-pane fade active show" id="about" role="tabpanel" aria-labelledby="about-tab">
+                            <div class="card user-info-box mb-30">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h3>Informations</h3>
+                                </div>
+
+                                <div class="card-body">
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="d-flex" *ngIf="userProfile.phone">
+                                            <i class='bx bx-phone mr-2'></i>
+                                            <span><b>Téléphone: </b>{{userProfile.phone}}</span>
+                                        </li>
+                                        <li class="d-flex" *ngIf="!userProfile.hideEmail">
+                                            <i class='bx bx-envelope mr-2'></i>
+                                            <span><b>Email: </b>{{userProfile.email}}</span>
+                                        </li>
+                                        <li class="d-flex">
+                                            <i class='bx bx-calendar mr-2'></i>
+                                            <span><b>Date d'Inscription: </b>{{userProfile.dateInscription | date:'short'}}</span>
+                                        </li>
+
+                                        <li class="d-flex" *ngIf="userProfile.city">
+                                            <i class="bx bxs-map-pin mr-2"></i>
+                                            <span><b>Ville: </b>{{userProfile.city}}</span>
+                                            </li>
+
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="card user-about-me-box mb-30" *ngIf="userProfile.bio">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h3>A propos de Moi</h3>
+                                </div>
+
+                                <div class="card-body">
+                                    <p>{{userProfile.bio}}</p>
+                                </div>
+                            </div>
+                        </div>
+</div></div></div></section></div></body></html>

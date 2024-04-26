@@ -86,14 +86,14 @@ export class RegisterComponent {
       
       response => {
         this.loading = true;
-
+/* 
         Swal.fire({
           icon: 'success',
           title: 'Inscription réussie !',
           text: 'Vous vous êtes inscrit avec succès.',
           confirmButtonText: 'OK'
-        });
-        this.router.navigate(['offres']);
+        }); */
+        this.router.navigate(['verify-email']);
       },
       error => {
         this.loading = false;

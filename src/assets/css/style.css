@@ -9346,4 +9346,16 @@ Footer CSS
   color: #e1000a;
   text-decoration: none;
 }
+
+.user-info img {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px; /* Adjust spacing between image and text */
+}
+
+.user-info span {
+  display: inline-block;
+  vertical-align: middle;
+}
+
 /*# sourceMappingURL=style.css.map */

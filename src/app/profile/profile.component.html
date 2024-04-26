@@ -17,12 +17,14 @@
 
         <!-- Start Profile Area -->
         <section class="profile-area">
+            
             <div class="profile-header mb-30">
-                <div class="user-profile-images">
+                <div class="user-profile-images" style="margin-top: 100px;">
                     <!-- Cover Image -->
                     <!-- <img [src]="userProfile.coverImage" class="cover-image" alt="Cover image"> -->
                     
                     <!-- Profile Image -->
+                   
                     <div class="profile-image" *ngIf="userProfile.image">
                         <img [src]="userProfile.image" class="rounded-circle" alt="Profile image">
                     </div>
@@ -35,7 +37,9 @@
 
                 <div class="user-profile-nav">
                     <ul class="nav nav-tabs" role="tablist">
+                       
                         <li class="nav-item">
+                            
                             <a class="nav-link" id="about-tab" data-toggle="tab" href="#about" role="tab"
                                aria-controls="about" aria-selected="true" class="nav-link active">A propos</a>
                         </li>
@@ -60,11 +64,11 @@
 
                                 <div class="card-body">
                                     <ul class="list-unstyled mb-0">
-                                        <li class="d-flex">
+                                        <li class="d-flex" *ngIf="userProfile.phone">
                                             <i class='bx bx-phone mr-2'></i>
                                             <span><b>Téléphone: </b>{{userProfile.phone}}</span>
                                         </li>
-                                        <li class="d-flex">
+                                        <li class="d-flex" *ngIf="!userProfile.hideEmail">
                                             <i class='bx bx-envelope mr-2'></i>
                                             <span><b>Email: </b>{{userProfile.email}}</span>
                                         </li>
@@ -73,7 +77,7 @@
                                             <span><b>Date d'Inscription: </b>{{userProfile.dateInscription | date:'short'}}</span>
                                         </li>
 
-                                        <li class="d-flex">
+                                        <li class="d-flex" *ngIf="userProfile.city">
                                             <i class="bx bxs-map-pin mr-2"></i>
                                             <span><b>Ville: </b>{{userProfile.city}}</span>
                                             </li>
@@ -82,7 +86,7 @@
                                 </div>
                             </div>
 
-                            <div class="card user-about-me-box mb-30">
+                            <div class="card user-about-me-box mb-30" *ngIf="userProfile.bio">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h3>A propos de Moi</h3>
                                 </div>
@@ -92,7 +96,9 @@
                                 </div>
                             </div>
                         </div>
-
+                        <div class="spinner-border" role="status" style="margin-left: 500px;" *ngIf="userProfileLoading">
+                            <span class="sr-only">Loading...</span>
+                        </div>
                         <!-- Settings Tab -->
                         <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
                             <div class="card user-settings-box mb-30">
@@ -142,8 +148,15 @@
                                                         formControlName="image">
                                                     <label class="custom-file-label" for="image">Choose a file</label>
                                                 </div>
-                                                <img  *ngIf="profileImageBase64"  [src]="profileImageBase64" alt="Profile Image" width="100" height="100">
-                                                
+                                                <div *ngIf="profileImageBase64">
+                                                <img    [src]="profileImageBase64" alt="Profile Image" width="100" height="100">
+                                            </div>
+                                            </div>
+                                            <br>
+                                                <h3><i class='bx bx-lock-alt'></i>Confidentialité</h3>
+                                                <div class="form-group form-check" style="margin-left: 30px;" >
+                                                <input type="checkbox" class="form-check-input" id="exampleCheck1" formControlName="hideEmail">
+                                                <label class="form-check-label" for="exampleCheck1" >Cacher mon email</label>
                                             </div>
 
                                         </div>

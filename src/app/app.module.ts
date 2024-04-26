@@ -21,6 +21,12 @@ import { SidebarAdminComponent } from './sidebar-admin/sidebar-admin.component';
 import { NavbarAdminComponent } from './navbar-admin/navbar-admin.component';
 import { ForbiddenComponent } from './forbidden/forbidden.component';
 import { AdminClientsComponent } from './admin-clients/admin-clients.component';
+import { ProfileDetailsComponent } from './profile-details/profile-details.component';
+import { VerifyEmailComponent } from './verify-email/verify-email.component';
+import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { environment } from '../environments/environment';
+const firebaseConfig = environment.firebaseConfig;
 @NgModule({
   declarations: [
     AppComponent,
@@ -40,15 +46,23 @@ import { AdminClientsComponent } from './admin-clients/admin-clients.component';
     NavbarAdminComponent,
     ForbiddenComponent,
     AdminClientsComponent,
+    ProfileDetailsComponent,
+    VerifyEmailComponent,
     
     
   ],
+  
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    AngularFireModule,
+    AngularFireAuthModule,
+    AngularFireModule.initializeApp(environment.firebaseConfig)
+
+    
     
     
   ],

@@ -218,7 +218,7 @@
                     </div>
                 </li>
 
-                <li class="nav-item dropdown profile-nav-item" *ngIf="authService.isLoggedIn$ | async">
+                <li class="nav-item dropdown profile-nav-item" >
                     <a href="#" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <div class="menu-profile">
                             <span class="name">Hi! {{ authService.infoUser.display_name }}</span>

@@ -4,6 +4,7 @@ import { ProfileService } from '../services/profile.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { DomSanitizer } from '@angular/platform-browser'; // Import DomSanitizer for safe HTML
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-profile',
@@ -17,18 +18,19 @@ export class ProfileComponent implements OnInit {
   profileImageBase64: string | null = null; // Store Base64 image
   maxImageSizeKB = 850; // Maximum allowed Base64 image size in KB
   loading: boolean = false;
-
+  userProfileLoading : boolean = false;
   constructor(
     private profileService: ProfileService,
     private authService: AuthService,
     private fb: FormBuilder,
-    private sanitizer: DomSanitizer, // Inject DomSanitizer
+    private sanitizer: DomSanitizer,
+    // Inject DomSanitizer
   ) {}
 
   ngOnInit() {
+
     // Fetch the logged-in user ID from the AuthService
     this.uid = this.authService.getUserId();
-
     // Initialize the profile form
     this.initForm();
 
@@ -39,10 +41,12 @@ export class ProfileComponent implements OnInit {
 
         // Populate the form with user data
         this.profileForm.patchValue(this.userProfile);
-
-        // If image exists, set it as Base64 format
+        
+      
        
-      },
+      }
+      ,
+      
       error => {
         console.error('Error fetching user profile', error);
       }
@@ -57,7 +61,9 @@ export class ProfileComponent implements OnInit {
       phone: [this.userProfile?.phone || ''],
       city: [this.userProfile?.city || ''],
       email: [{ value: this.userProfile?.email || '', disabled: true }], // Email is read-only
-      image: [null] // Use a file input for the image
+      image: [null],
+      hideEmail :[this.userProfile?.hideEmail || true]
+      // Use a file input for the image
     });
   }
 
@@ -95,6 +101,7 @@ export class ProfileComponent implements OnInit {
           // Update the profile form with the Base64 encoded image
           this.profileForm.get('image')?.setValue(this.profileImageBase64);
         }
+        console.log("image input value: ", this.profileForm.get('image')?.value);
       };
 
       // Read the file as a Data URL (Base64 format)
@@ -105,15 +112,21 @@ export class ProfileComponent implements OnInit {
   // Method to handle profile form submission
   onSubmitProfileForm() {
     this.loading = true;
-    if (this.profileForm.valid) {
+   
         // Get the form data
-        const updatedData = this.profileForm.value;
+      
+        if (this.profileForm.valid) {
+          // Get the form data
+          const updatedData = { ...this.profileForm.value };
+      
+          // Check if the image has changed
+          if (updatedData.image === this.userProfile.image) {
+            // Image hasn't changed, remove it from the payload
+            delete updatedData.image;
+          }
 
-        // Include the profile image data if available
-        if (this.profileImageBase64) {
-            updatedData.image = this.profileImageBase64;
-        }
-
+ 
+     
         // Update the user profile data
         this.profileService.updateUserProfile(this.uid!, updatedData).subscribe(
             () => {
@@ -166,6 +179,7 @@ export class ProfileComponent implements OnInit {
         this.userProfile = data;
         // Populate the form with the updated user data
         this.profileForm.patchValue(this.userProfile);
+
       },
       error => {
         console.error('Error fetching user profile', error);

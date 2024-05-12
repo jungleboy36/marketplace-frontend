@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <link rel="icon" type="image/png" src="../../assets/img/favicon.png">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
 </head>
 
 <body>
@@ -73,9 +78,21 @@
                                 <input type="number" class="form-control" [(ngModel)]="newOffer.volume" formControlName="volume" name="volume">
                             </div>
                             <div class="form-group">
+                                <label>Itinerary</label>
+                                <div id="map" style="height: 300px;"></div>
+                                <button class="btn btn-primary mt-2" (click)="confirmItinerary()">Confirm Itinerary</button>
+                            </div>
+                            
+                            <div class="form-group">
                                 <label>Price</label>
                                 <input type="number" class="form-control" [(ngModel)]="newOffer.price" formControlName="price" name="price">
                             </div>
+                            <div class="form-group">
+                                <label>Itinerary</label>
+                                <div id="map" style="height: 300px;"></div>
+                                <button class="btn btn-primary mt-2" (click)="confirmItinerary()">Confirm Itinerary</button>
+                            </div>
+                            
                             <!-- Add more fields as needed -->
                         </form>
                     </div>

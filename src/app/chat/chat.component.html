@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zxx">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+       
+
+        <link rel="icon" type="image/png" href="assets/img/favicon.png">
+    </head>
+
+    <body>
+        <app-sidebar></app-sidebar>
+        <div class="main-content d-flex flex-column">
+            <app-navbar></app-navbar>
+
+            <!-- Start -->
+            <h2>Chat</h2>
+            <div class="chat-content-area mt-20">
+                <div class="sidebar-left">
+                    <div class="sidebar">
+                        <div class="chat-sidebar-header d-flex align-items-center">
+                            <div class="avatar mr-3">
+                                <img src="assets/img/user1.jpg" width="50" height="50" class="rounded-circle" alt="image">
+                            </div>
+
+                            <form class="form-group position-relative mb-0">
+                                <label><i class='bx bx-search'></i></label>
+                                <input type="text" class="form-control" placeholder="Search here...">
+                            </form>
+                        </div>
+
+                        <div class="sidebar-content d-flex chat-sidebar" data-simplebar>
+                            <div class="chat-menu">
+                                <label class="d-block list-group-label mt-0">Chats</label>
+                        
+                                <ul class="list-group list-group-user list-unstyled mb-0">
+                                    <li *ngFor="let conversation of conversations" (click)="selectConversation(conversation)" >
+                                        
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar mr-3">
+                                                <img src="{{getPicture(conversation)}}" width="50" height="50" class="rounded-circle" alt="image">
+                                                <span class="status-busy"></span>
+                                            </div>
+                                            <div class="user-name">
+                                                <div>
+                                                <h6 class="font-weight-bold">{{ getDisplayName(conversation) }}</h6>
+                                            </div>
+                                                <span class="d-block">{{ conversation.lastMessage }}</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <div class="content-right">
+                    <div class="chat-area" >
+                        <div class="chat-list-wrapper">
+                            <div class="chat-list" >
+                                <div class="chat-list-header d-flex align-items-center" *ngIf="selectedConversation">
+                                    <div class="header-left d-flex align-items-center mr-3">
+                                        <div class="avatar mr-3">
+                                            <img src="{{getPicture(selectedConversation)}}" width="70" height="70" class="rounded-circle" alt="image">
+                                            <span class="status-online"></span>
+                                        </div>
+                                        <h6 class="mb-0 font-weight-bold" *ngIf="selectedConversation">{{getDisplayName(selectedConversation)}}</h6>
+                                    </div>
+
+                                    <div class="header-right text-right w-100">
+                                        
+                                    </div>
+                                </div>
+
+                                <div class="chat-container" data-simplebar  >
+                                    <div class="chat-content" >
+                                      <div *ngFor="let message of messages" >
+                                        <div  class="chat" *ngIf="message.sender_id != userId">
+                                        <div class="chat-avatar">
+                                          <a href="#" class="d-inline-block">
+                                            <img src="{{profilePicture}}" width="50" height="50" class="rounded-circle" alt="image">
+                                          </a>
+                                        </div>
+                                  
+                                        <div class="chat-body" >
+                                          <div class="chat-message">
+                                            <p>{{ message.message }}</p>
+                                            <span class="time d-block">{{ message.time | date: 'hh:mm a' }}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+
+
+                                      <div  class="chat chat-left" *ngIf="message.sender_id == userId">
+                                        <div class="chat-avatar">
+                                          <a href="#" class="d-inline-block">
+                                            <img src="{{getPicture(selectedConversation)}}" width="50" height="50" class="rounded-circle" alt="image">
+                                          </a>
+                                        </div>
+                                  
+                                        <div class="chat-body">
+                                          <div class="chat-message">
+                                            <p>{{ message.message }}</p>
+                                            <span class="time d-block">{{ message.time | date: 'hh:mm a' }}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+
+                                    </div>
+                                    <div hidden>  {{scrollToBottom()}}</div>
+                                    </div>
+                                  </div>
+                                  
+
+                                <div class="chat-list-footer" *ngIf="selectedConversation">
+                                    <form #messageForm="ngForm" (ngSubmit)="sendMessage()" class="d-flex align-items-center">
+                             
+
+                                        <input type="text" class="form-control" name="newMessage" [(ngModel)]="newMessage" placeholder="Type your message...">
+
+                                        <button type="submit" class="send-btn d-inline-block"  *ngIf="isEmpty(newMessage)">Envoyer <i class="bx bx-paper-plane"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End -->
+
+            <div class="flex-grow-1"></div>
+
+            <!-- Start Footer End -->
+            <footer class="footer-area">
+                <div class="row align-items-center">
+                    <div class="col-lg-6 col-sm-6 col-md-6">
+                        <p>Copyright <i class='bx bx-copyright'></i> 2020 <a href="#">Olaf</a>. All rights reserved</p>
+                    </div>
+
+                    <div class="col-lg-6 col-sm-6 col-md-6 text-right">
+                        <p>Designed by ❤️ <a href="https://envytheme.com/" target="_blank">EnvyTheme</a></p>
+                    </div>
+                </div>
+            </footer>
+            <!-- End Footer End -->
+
+     
+        <!-- End Main Content Wrapper Area -->
+     
+
+
+        <div class="chartjs-colors"> <!-- To use template colors with Javascript -->
+            <div class="bg-primary"></div>
+            <div class="bg-primary-light"></div>
+            <div class="bg-secondary"></div>
+            <div class="bg-info"></div>
+            <div class="bg-success"></div>
+            <div class="bg-success-light"></div>
+            <div class="bg-danger"></div>
+            <div class="bg-warning"></div>
+            <div class="bg-purple"></div>
+            <div class="bg-pink"></div>
+        </div>
+        </div>
+   
+    </body>
+</html>

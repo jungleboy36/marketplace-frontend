@@ -21,6 +21,7 @@
             "assets": [
               "src/favicon.ico",
               "src/assets"
+              
             ],
             "styles": [
               "src/assets/css/vendors.min.css",
@@ -28,7 +29,16 @@
               "src/assets/css/responsive.css",              
               "src/assets/css/responsive.scss",
               "src/assets/css/bootstrap.min.css",
-              "src/assets/css/style.scss"
+              "src/assets/css/style.scss",
+              "node_modules/leaflet/dist/leaflet.css",
+              "src/app/offer-list/offer-list.component.css",
+              
+
+              "src/assets/homepage/vendor/bootstrap-icons/bootstrap-icons.css",
+              "src/assets/homepage/vendor/fontawesome-free/css/all.min.css",
+              "src/assets/homepage/vendor/glightbox/css/glightbox.min.css",
+              "src/assets/homepage/vendor/swiper/swiper-bundle.min.css",
+              "src/assets/homepage/vendor/aos/aos.css"
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",
@@ -47,7 +57,18 @@
               "src/assets/js/apexcharts/apex-custom-mixed-charts.js",
               "src/assets/js/apexcharts/apex-custom-radialbar-charts.js",
               "src/assets/js/apexcharts/apex-custom-radar-chart.js",
-              "src/assets/js/jvectormap-world-mill-en.js"
+              "src/assets/js/jvectormap-world-mill-en.js",
+              "node_modules/leaflet/dist/leaflet.js",
+
+
+               "src/assets/homepage/vendor/bootstrap/js/bootstrap.bundle.min.js",
+               "src/assets/homepage/vendor/purecounter/purecounter_vanilla.js",
+               "src/assets/homepage/vendor/glightbox/js/glightbox.min.js",
+               "src/assets/homepage/vendor/swiper/swiper-bundle.min.js",
+               "src/assets/homepage/vendor/aos/aos.js",
+               "src/assets/homepage/vendor/php-email-form/validate.js",
+            
+               "src/assets/homepage/js/main.js"
 
               
             ]
@@ -112,12 +133,15 @@
             "karmaConfig": "karma.conf.js",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "node_modules/leaflet/dist/leaflet.css"
+
             ],
             "styles": [
               "src/assets/css/vendors.min.css",
               "src/assets/css/style.css",
-              "src/assets/css/responsive.css"
+              "src/assets/css/responsive.css",
+              "node_modules/leaflet/dist/leaflet.js"
             ],
             "scripts": [
             ]

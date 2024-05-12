@@ -30,4 +30,10 @@ export class AdminService {
     return this.http.put<any>(`${this.baseUrl}/clients/${uid}/`, { enabled });
   }
 
+  getNotifications(userId: string): Observable<any> {
+    return this.http.get<any>(`http://localhost:8000/notifications/?user_id=${userId}`);
+  }
+  markAllNotificationsAsRead(userId : string): Observable<any> {
+    return this.http.post<any>(`http://localhost:8000/notifications/mark-all-as-read/?user_id=${userId}`, {});
+  }
 }

@@ -26,6 +26,8 @@ import { VerifyEmailComponent } from './verify-email/verify-email.component';
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { environment } from '../environments/environment';
+import { ChatComponent } from './chat/chat.component';
+import { HomeComponent } from './home/home.component';
 const firebaseConfig = environment.firebaseConfig;
 @NgModule({
   declarations: [
@@ -48,6 +50,9 @@ const firebaseConfig = environment.firebaseConfig;
     AdminClientsComponent,
     ProfileDetailsComponent,
     VerifyEmailComponent,
+    ChatComponent,
+    HomeComponent,
+   
     
     
   ],

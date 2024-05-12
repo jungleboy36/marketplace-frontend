@@ -45,7 +45,7 @@ export class EditOfferComponent {
         // Show success message using SweetAlert
         Swal.fire({
           icon: 'success',
-          title: 'Offer Updated Successfully!',
+          title: 'Offre mise à jour avec succès !',
           timer: 800, // Adjust the timer as needed
           showConfirmButton: false
         }).then(() => {

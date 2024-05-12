@@ -1,3 +1,13 @@
 export const environment = {
-  production: true
+  production: true,
+  mapboxAccessToken: 'pk.eyJ1IjoiYWNocmFmaGFmc2lhIiwiYSI6ImNsdnA4aHNkYTBxemsycW82bXVuc2hmMDcifQ.Fj6AwlA7bJm7oCnQOGJIHg',
+  firebaseConfig: {
+    apiKey: "AIzaSyA7PVYydIkiCMoy6Vn9Ra9z9-ahWIHUZmw",
+    authDomain: "marketplace-c04fc.firebaseapp.com",
+    databaseURL: "https://marketplace-c04fc-default-rtdb.firebaseio.com",
+    projectId: "marketplace-c04fc",
+    storageBucket: "marketplace-c04fc.appspot.com",
+    messagingSenderId: "1037753216769",
+    appId: "1:1037753216769:web:dde439187e1c278687b500",
+    measurementId: "G-9C7WNW7R23"}
 };

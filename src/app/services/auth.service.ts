@@ -74,15 +74,15 @@ import Swal from 'sweetalert2';
             } else {
               // Account is disabled or email is not verified
               this.loadingSubject.next(false); // Set loading to false after login attempt
-              let errorMessage = 'Incorrect email or password. Please try again.';
+              let errorMessage = 'E-mail ou mot de passe incorrect. Veuillez réessayer.';
               if (user && !user.emailVerified) {
-                errorMessage = 'Email not verified. Please verify your email address.';
+                errorMessage = "L'adresse e-mail n'a pas été vérifiée. Veuillez vérifier votre e-mail.";
               } else if (!enabled) {
-                errorMessage = 'Your account is disabled. Please contact support for assistance.';
+                errorMessage = "Votre compte est désactivé. Veuillez contacter le service d'assistance pour obtenir de l'aide.";
               }
               Swal.fire({
                 icon: 'error',
-                title: 'Login Failed',
+                title: 'Échec de la connexion',
                 text: errorMessage,
                 confirmButtonText: 'OK'
               });
@@ -235,5 +235,15 @@ import Swal from 'sweetalert2';
   checkUser(userId: string): Observable<any> {
     const url = `${this.apiUrl}status/${userId}`;
     return this.http.get<any>(url);
+  }
+
+  getNotifications(userId: string): Observable<any> {
+    return this.http.get<any>(`http://localhost:8000/notifications/?user_id=${userId}`);
+  }
+  markAllNotificationsAsRead(userId : string): Observable<any> {
+    return this.http.post<any>(`http://localhost:8000/notifications/mark-all-as-read/?user_id=${userId}`, {});
+  }
+  getDisplayName() : string | null {
+    return localStorage.getItem('display_name');
   }
   }

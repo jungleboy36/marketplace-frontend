@@ -16,6 +16,8 @@ import { ProfileDetailsComponent } from './profile-details/profile-details.compo
 import { VerifyEmailComponent } from './verify-email/verify-email.component';
 import { TokenInterceptor } from './tokenInterceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HomeComponent } from './home/home.component';
+import { ChatComponent } from './chat/chat.component';
 const routes: Routes = [
 
 {path:'offers',
@@ -25,12 +27,14 @@ children :[
 },
 
   {path:'demandes', component: DemandeListComponent , canActivate: [AuthGuard], data: { expectedRole: ['client','company'] }},
+  {path:'chat', component: ChatComponent, canActivate: [AuthGuard], data: { expectedRole: ['client','company'] }},
   {path:'edit-demande/:id',component:EditDemandeComponent, canActivate: [AuthGuard],data: { expectedRole: 'client' }},
   {path:'edit-offer/:id',component:EditOfferComponent, canActivate: [AuthGuard],data: { expectedRole: 'company' }},
   {path:'profile', component:ProfileComponent, canActivate:[AuthGuard] , data: { expectedRole: ['client','company']}},
   { path: 'details/:id', component: ProfileDetailsComponent, canActivate:[AuthGuard] , data: { expectedRole: ['client','company']} },
   {path:'register',component:RegisterComponent},
   {path:'forbidden',component:ForbiddenComponent},
+  {path:'home',component:HomeComponent},
   {path:'login',component:LoginComponent},
   {path:'verify-email',component:VerifyEmailComponent},
   {
@@ -40,7 +44,7 @@ children :[
   {path:'clients',component:AdminClientsComponent , canActivate: [AuthGuard], data: { expectedRole: 'admin' }},
 
 ]},
-  { path: '**', redirectTo: '/login', pathMatch: 'full' }
+  { path: '**', redirectTo: '/home', pathMatch: 'full' }
 
 
 ];

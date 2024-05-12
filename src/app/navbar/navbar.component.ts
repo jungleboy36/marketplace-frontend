@@ -11,6 +11,7 @@ export class NavbarComponent implements OnInit {
   isLoggedIn$ = this.authService.isLoggedIn$;
   userInfo: any;
   public profileImageUrl: string | null = null;
+  notifications: any[] = [];
 
   constructor(public authService: AuthService,private profileService: ProfileService) { }
 
@@ -44,6 +45,7 @@ export class NavbarComponent implements OnInit {
       // Reload data or take necessary actions
       this.loadData();
     });
+    this.loadNotifications();
   }
   
 
@@ -63,5 +65,35 @@ export class NavbarComponent implements OnInit {
         }
       );
 
+  }
+
+  loadNotifications() {
+    // Get the user ID from the authenticated user
+    const userId = this.authService.getUserId();
+  
+    // Call the getNotifications function from the AdminService
+    this.authService.getNotifications(userId).subscribe(
+      (data: any[]) => {
+        // Assign the notifications data to the notifications array
+        this.notifications = data;
+      },
+      (error) => {
+        // Handle any errors
+        console.error('Error fetching notifications:', error);
+      }
+    );
+  }
+  
+  markAllAsRead() {
+    const userId = this.authService.getUserId();
+    this.authService.markAllNotificationsAsRead(userId).subscribe(
+      () => {
+        // After marking all notifications as read, reload the notifications
+        this.notifications = []
+      },
+      (error: any) => {
+        console.error('Error marking all notifications as read:', error);
+      }
+    );
   }
 }

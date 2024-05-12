@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DemandeService } from '../services/demande.service';
+import Swal from 'sweetalert2';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-edit-offer',
@@ -9,7 +11,7 @@ import { DemandeService } from '../services/demande.service';
 })
 export class EditDemandeComponent {
   minDate: string;
-  constructor(private route: ActivatedRoute, public router : Router ,private demandeService: DemandeService) { 
+  constructor(private route: ActivatedRoute, public router : Router ,private demandeService: DemandeService,private datePipe: DatePipe) { 
     this.minDate = this.demandeService.getMinDate();
 
   }
@@ -19,6 +21,7 @@ export class EditDemandeComponent {
     this.demandeService.getDemandeById(demandeId!).subscribe(
       (demande) => {
         this.demande = demande;
+        this.demande.date = this.datePipe.transform(this.demande.date!, 'yyyy-MM-ddTHH:mm');
       },
       (error) => {
         console.error('Error fetching offer:', error);
@@ -31,7 +34,15 @@ export class EditDemandeComponent {
     this.demandeService.updateDemande(demandeId!, this.demande).subscribe(
       (response) => {
         console.log('Demande updated successfully:', response);
-        this.router.navigate(['/demandes']);
+        Swal.fire({
+          icon: 'success',
+          title: 'Demande mise à jour avec succès !',
+          timer: 800, // Adjust the timer as needed
+          showConfirmButton: false
+        }).then(() => {
+          this.router.navigate(['/demandes']);
+          
+        });
       },
       (error) => {
         console.error('Error updating demande:', error);

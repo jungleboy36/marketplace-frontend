@@ -9358,4 +9358,9 @@ Footer CSS
   vertical-align: middle;
 }
 
+
+.leaflet-control-container .leaflet-routing-container-hide {
+  display: none;
+}
+
 /*# sourceMappingURL=style.css.map */

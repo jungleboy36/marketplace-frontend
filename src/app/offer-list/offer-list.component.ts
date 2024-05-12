@@ -5,12 +5,21 @@ import Swal from 'sweetalert2';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { DatePipe, formatDate } from '@angular/common';
+import * as L from 'leaflet';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine';
 
 @Component({
   selector: 'app-offer-list',
   templateUrl: './offer-list.component.html',
+  styleUrls: ['./offer-list.component.html'],
 })
 export class OfferListComponent implements OnInit {
+  map: any;
+  itinerary: string = '';
+  originPin: any;
+  destinationPin: any;
+  routeLayer: any;
+
   offers: any[] = [];
   filteredOffers: any[] = [];
   len!: number;
@@ -52,14 +61,13 @@ export class OfferListComponent implements OnInit {
     public authService : AuthService,
     private datePipe: DatePipe,
   ) {
-
-     this.minDate = this.offerService.getMinDate();
+    this.minDate = this.offerService.getMinDate();
   }
 
   ngOnInit(): void {
     this.loadOffers();
     this.offerForm = this.formBuilder.group({
-      title: ['', Validators.required],
+      title: ['', Validators.required], 
       description: ['', Validators.required],
       depart_date: ['', Validators.required],
       arrival_date: ['', Validators.required],
@@ -68,6 +76,63 @@ export class OfferListComponent implements OnInit {
       price: ['', Validators.required],
       user_id : '',
     });
+
+    // Initialize the map with default location (Paris, France)
+    this.map = L.map('map').setView([48.8566, 2.3522], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(this.map);
+
+    // Add click event listener to the map
+    this.map.on('click', (e: any) => {
+      // Remove existing pins
+      if (this.originPin) {
+        this.map.removeLayer(this.originPin);
+      }
+      if (this.destinationPin) {
+        this.map.removeLayer(this.destinationPin);
+      }
+
+      // Create a pin icon
+      const pinIcon = L.icon({
+        iconUrl: 'path/to/pin-icon.png', // Replace with your pin icon URL
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+      });
+
+      // Place a pin at the clicked location
+      if (!this.originPin) {
+        this.originPin = L.marker(e.latlng, { icon: pinIcon }).addTo(this.map);
+      } else if (!this.destinationPin) {
+        this.destinationPin = L.marker(e.latlng, { icon: pinIcon }).addTo(this.map);
+      }
+
+      // Check if both pins are placed
+      if (this.originPin && this.destinationPin) {
+        this.displayRoute(this.originPin.getLatLng(), this.destinationPin.getLatLng());
+      }
+    });
+  }
+
+  displayRoute(origin: any, destination: any) {
+    // Add route layer
+    this.routeLayer = (L as any).routing.control({
+      waypoints: [
+        L.latLng(origin.lat, origin.lng),
+        L.latLng(destination.lat, destination.lng)
+      ],
+      routeWhileDragging: true,
+      show: false
+    }).addTo(this.map);
+  
+    // Don't remove existing map tiles
+  }
+
+  confirmItinerary() {
+    // Use this.itinerary as the selected itinerary
+    console.log('Selected Itinerary:', this.itinerary);
+    // You can save this.itinerary to your form or perform further processing here
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
   }
 
   clickCancelButton() {
@@ -185,9 +250,11 @@ export class OfferListComponent implements OnInit {
   searchOffers() {
     this.filteredOffers = this.offers.filter(offer =>
       offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+      offer.description.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+      offer.itinerary.toLowerCase().includes(this.searchQuery.toLowerCase()) 
     );
   }
+
   applyFilter() {
     if (this.filterOption === 'mine' ) {
       // Filter offers to show only the user's offers
@@ -203,7 +270,6 @@ export class OfferListComponent implements OnInit {
       offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
     );
   }
-
 
   refresh() {
     this.loading = true;

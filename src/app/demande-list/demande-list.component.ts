@@ -54,6 +54,9 @@ export class DemandeListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.minDate = this.demandeService.getMinDate();
+    console.log("minDate: ",this.minDate);
+
     this.role = this.authService.getRole();
     this.loadDemandes();
     this.demandeForm = this.formBuilder.group({
@@ -84,7 +87,7 @@ export class DemandeListComponent implements OnInit {
       this.demandes = JSON.parse(cachedDemandes);
       this.filteredDemandes = [...this.demandes];
       this.loading = false;}
-      else{}
+      
     if (this.role == 'company')
     this.demandeService.getDemandes().subscribe(
       (demandes: any[]) => {
@@ -106,6 +109,7 @@ export class DemandeListComponent implements OnInit {
       (demandes: any[]) => {
         this.demandes = demandes.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
         this.filteredDemandes = [...this.demandes];
+        localStorage.setItem('cachedDemandes', JSON.stringify(this.demandes));
         this.loading = false ;
         this.applyFilter();
 
@@ -203,19 +207,36 @@ export class DemandeListComponent implements OnInit {
   refresh() {
     this.loading = true;
     this.filteredDemandes = [ ]
+    if (this.role == 'company')
     this.demandeService.getDemandes().subscribe(
       (demandes: any[]) => {
         this.demandes = demandes.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
         this.filteredDemandes = [...this.demandes];
         localStorage.setItem('cachedDemandes', JSON.stringify(this.demandes));
-        this.loading = false;
-        if (this.filterOption == "mine") {
-          this.applyFilter();
-        }
+        this.loading = false ;
+        this.applyFilter();
+
       },
       (error) => {
-        this.errorMessage = 'Error fetching demandes: ' + error.message;
-        this.loading = false;
+        this.errorMessage = 'Error fetching offers: ' + error.message;
+        this.loading = false ;
+
+      }
+    );
+    else if (this.role == 'client')
+    this.demandeService.getDemandesById(this.authService.getUserId()).subscribe(
+      (demandes: any[]) => {
+        this.demandes = demandes.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+        this.filteredDemandes = [...this.demandes];
+        localStorage.setItem('cachedDemandes', JSON.stringify(this.demandes));
+        this.loading = false ;
+        this.applyFilter();
+
+      },
+      (error) => {
+        this.errorMessage = 'Error fetching offers: ' + error.message;
+        this.loading = false ;
+
       }
     );
   }

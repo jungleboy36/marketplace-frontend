@@ -31,7 +31,12 @@ export class EditOfferComponent {
         console.log("Depart : ", this.offer.arrival_date_formatted);
       },
       (error) => {
-        console.error('Error fetching offer:', error);
+        Swal.fire({
+          icon: 'error',
+          title: error,
+          timer: 800, // Adjust the timer as needed
+          showConfirmButton: false
+        })
       }
     );
 

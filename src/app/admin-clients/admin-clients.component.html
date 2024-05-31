@@ -47,7 +47,7 @@
                 <td>{{ client.dateInscription| date: 'dd MMM yyyy'  }}</td>
                 <td><i style="color: red;" class="bx bx-x-circle" *ngIf="!client.enabled" ></i>
                     <i style="color: green;" class="bx bx-check-circle" *ngIf="client.enabled" ></i>
-                    {{ client.enabled ? 'Actif' : 'Désactivé' }}</td>
+                    {{ client.enabled ? 'Actif' : 'Désactivé' }} <div class="spinner-border" role="status" style="width: 10px; height:10px" *ngIf="client.uid == selectedUser"></div></td>
                 <div class="form-check form-switch">
                     <input
                         class="form-check-input"

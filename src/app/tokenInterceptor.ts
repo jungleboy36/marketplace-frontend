@@ -50,6 +50,7 @@ export class TokenInterceptor implements HttpInterceptor {
             confirmButtonText: 'OK'
           }).then((result) => {
             if (result.isConfirmed) {
+              this.authService.logout();
               this.router.navigate(['/login']); // Redirect to login page
             }
           });

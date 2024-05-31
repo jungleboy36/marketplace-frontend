@@ -1,6 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
@@ -22,7 +23,8 @@
       "dom"
     ],
     "types": [
-      "socket.io-client"
+      "socket.io-client",
+      "jquery"
     ]
   },
   "angularCompilerOptions": {

@@ -62,7 +62,8 @@ export class ProfileComponent implements OnInit {
       city: [this.userProfile?.city || ''],
       email: [{ value: this.userProfile?.email || '', disabled: true }], // Email is read-only
       image: [null],
-      hideEmail :[this.userProfile?.hideEmail || true]
+      hideEmail :[this.userProfile?.hideEmail || true],
+      paypalEmail : [this.userProfile?.paypalEmail ||  ''],
       // Use a file input for the image
     });
   }
@@ -125,7 +126,16 @@ export class ProfileComponent implements OnInit {
             delete updatedData.image;
           }
 
- 
+          if(updatedData.paypalEmail != '' && ! this.isEmailValid(updatedData.paypalEmail)){
+            this.loading = false;
+            Swal.fire({
+              title: 'Erreur!',
+              text: "l'email paypal doit être valide",
+              icon: 'error',
+              confirmButtonText: 'OK'
+          })
+          return;
+          }
      
         // Update the user profile data
         this.profileService.updateUserProfile(this.uid!, updatedData).subscribe(
@@ -186,4 +196,10 @@ export class ProfileComponent implements OnInit {
       }
     );
   }
+  isEmailValid(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    return emailRegex.test(email);
+  }
+
 }
+

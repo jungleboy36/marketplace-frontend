@@ -10,7 +10,7 @@ import Swal from 'sweetalert2';
 export class AdminClientsComponent implements OnInit {
   clients: any[] = [];
   loading = true;
-
+  selectedUser : string = '';
   constructor(private adminService: AdminService) {}
 
   ngOnInit(): void {
@@ -35,11 +35,13 @@ export class AdminClientsComponent implements OnInit {
   updateClientStatus(client: any, event: Event): void {
     const target = event.target as HTMLInputElement;
     const newStatus = target.checked; // Access the checked property safely
+    this.selectedUser = client.uid; // Update local state based on the response
 
     if (client && typeof newStatus === 'boolean') {
         this.adminService.updateClientStatus(client.uid, newStatus).subscribe(
             response => {
-                client.enabled = newStatus; // Update local state based on the response
+                client.enabled = newStatus;
+                this.selectedUser = ''; // Update local state based on the response
                 /* Swal.fire({
                     icon: 'success',
                     title: 'Mise à jour réussie',

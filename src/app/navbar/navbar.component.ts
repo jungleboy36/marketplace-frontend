@@ -24,7 +24,7 @@ export class NavbarComponent implements OnInit {
       if(! currentUrl.includes('chat')){
         console.log('data username pusher : ',data.username);
         this.message.username = data.username;
-        this.message.time = data.time;
+        this.message.time =  JSON.parse(data.time);
         this.getUserPicture(data.userId,this.message);
         this.messages.push(this.message);
       }

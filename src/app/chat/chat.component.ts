@@ -5,6 +5,12 @@ import { interval, switchMap } from 'rxjs';
 import { PresenceService } from '../services/presence.service';
 import Pusher from 'pusher-js';
 import { PusherAuthService } from '../services/pusher.service';
+import Swal from 'sweetalert2';
+import { ProfileService } from '../services/profile.service';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Renderer2, Inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { NgForm } from '@angular/forms';
 
 @Component({
   selector: 'app-chat',
@@ -13,9 +19,14 @@ import { PusherAuthService } from '../services/pusher.service';
 })
 export class ChatComponent implements OnInit,AfterViewInit {
   @ViewChild('chatContainer') chatContainerRef!: ElementRef;
+  @ViewChild('cancelButton') cancelButton: ElementRef | undefined;
+  @ViewChild('cancelButtonCompany') cancelButtonCompany: ElementRef | undefined;
+  @ViewChild('cancelButtonClient') cancelButtonClient: ElementRef | undefined;
+  @ViewChild('feedbackForm', { static: false }) feedbackForm: NgForm | undefined;
+
   conversations: any[] = [];
   conversationsUpdate: any[] = [];
-
+  autoMessage : string = ''
   selectedConversation: any = null;
   newMessage: string = '';
   userId : string ='';
@@ -23,17 +34,35 @@ export class ChatComponent implements OnInit,AfterViewInit {
   picture : any;
   profilePicture: string | null = null;
  messagesChannel : any;
-  constructor(private chatService: ChatService, public authService : AuthService,private presenceService: PresenceService, private pusherAuthService: PusherAuthService) {
-    
+ isCompanyy : boolean = false;
+ paypalExist : boolean = false;
+ merchantId : string = '';
+ amount : number = 0 ;
+ paymentDone : boolean = false;
+  paymentChannel: any;
+  feedback_id : string = '';
+  pusher = new Pusher('1c26d2cd463b15a19666', {
+      cluster: 'eu',
+    })
+  constructor(private chatService: ChatService, public authService : AuthService,private presenceService: PresenceService, private pusherAuthService: PusherAuthService, private profileService : ProfileService,private sanitizer: DomSanitizer, private renderer2: Renderer2,
+    @Inject(DOCUMENT) private _document:Document) {
    }
 
   ngOnInit(): void {
+    this.userId = this.authService.getUserId();
+    (window as any).onPaymentSuccess = this.onPaymentSuccess.bind(this);
+    (window as any).onCancelPayment = this.cancelPayment.bind(this);
+    (window as any).openModal = this.openModal.bind(this);
+
     const pusher = new Pusher('1c26d2cd463b15a19666', {
       cluster: 'eu',
     })
 
-    this.userId = this.authService.getUserId();
+  
+    this.getAutoMessage();
     this.fetchConversations();
+
+
     this.profilePicture =localStorage.getItem('profileImageUrl');
     //this.fetchDataEveryFiveSeconds();
     //this.conversations = this.conversationsUpdate;
@@ -44,8 +73,11 @@ export class ChatComponent implements OnInit,AfterViewInit {
       if (conversation.id == conversation_id && this.selectedConversation.id != conversation_id){
         conversation.notif = true;
       }
+    
+   
       })
-      console.log('pusher triggered !, conversation id : ', conversation_id);
+      
+      //console.log('pusher triggered !, conversation id : ', conversation_id);
       if(this.selectedConversation.id == conversation_id){
       this.fetchMessages(conversation_id);}
     });
@@ -55,12 +87,17 @@ export class ChatComponent implements OnInit,AfterViewInit {
          this.getUserPresence(this.getSenderId(conversation)!,conversation);
       })
     })
+  
   }
 
   fetchConversations() {
     this.chatService.getConversations(this.userId).subscribe(
       (conversations: any[]) => {
         this.conversations = conversations;
+        this.conversations = conversations.sort((a, b) => {
+          return new Date(b.time).getTime() - new Date(a.time).getTime();
+        });
+      
         if(this.conversations.length >0){
         this.selectConversation(this.conversations[0]);}
         this.conversations.forEach(conversation => {
@@ -68,7 +105,17 @@ export class ChatComponent implements OnInit,AfterViewInit {
         this.LoadPicture(conversation);
           this.getUserPresence(this.getSenderId(conversation)!,conversation);
         });
-
+        
+        this.LoadData();
+        this.LoadReceiverData().then(()=>{
+          this.appendFirstScript(this.merchantId).then(() => {
+            console.log('First paypal script loaded successfully');
+            this.appendSecondScript();
+      
+          });
+        });
+        this.getPaymentData();
+        this.retrieve_feedbackk();
 
       },
       (error) => {
@@ -80,15 +127,25 @@ export class ChatComponent implements OnInit,AfterViewInit {
   selectConversation(conversation: any) {
     this.selectedConversation = conversation;
     this.selectedConversation.notif = false;
+    
     this.fetchMessages(conversation.id);
+    this.paymentChannel = this.pusher.subscribe(this.selectedConversation.id);
+    this.paymentChannel.bind('paiements',(data :any)=>{
+      this.getPaymentData();
+      
+
+    });
+
+    
   }
 
   fetchMessages(conversationId: string) {
     console.log("conversation id fetch messages: ",conversationId);
+
     this.chatService.getMessages(conversationId).subscribe(
       (messages: any[]) => {
         this.messages = messages;
-        console.log("messages: ",this.messages);
+        //console.log("messages: ",this.messages);
       },
       (error) => {
         console.error('Error fetching messages:', error);
@@ -97,6 +154,7 @@ export class ChatComponent implements OnInit,AfterViewInit {
   }
 
   sendMessage() {
+    if( this.isEmpty(this.newMessage)){
     const message = {
       id: this.selectedConversation.id,  
       message: this.newMessage,
@@ -105,18 +163,17 @@ export class ChatComponent implements OnInit,AfterViewInit {
       receiver_id : this.getSenderrId(this.selectedConversation),
       sender_display_name : this.authService.getDisplayName()
     };
+    this.newMessage = '';
 
     this.chatService.sendMessage(message).subscribe(
       (response) => {
-        this.newMessage = '';
         this.fetchMessages(this.selectedConversation.id);
         this.scrollToBottom();
-        this.triggerPusherEvent(message.sender_id);
       },
       (error) => {
         console.error('Error sending message:', error);
       }
-    );
+    );}
   }
 
   getDisplayName(conversation: any) : string | null {
@@ -167,6 +224,7 @@ export class ChatComponent implements OnInit,AfterViewInit {
       ngAfterViewInit() {
         // Scroll to the bottom of the chat container after the view is initialized
         this.scrollToBottom();
+
       }
       scrollToBottom() {
         // After adding new content to the chat container
@@ -179,38 +237,13 @@ if (contentWrappers.length >= 3) {
     const thirdContentWrapper = contentWrappers[2];
     thirdContentWrapper.scrollTop = thirdContentWrapper.scrollHeight;
     // Now you can work with the third content wrapper element
-    console.log(thirdContentWrapper);
+    //console.log(thirdContentWrapper);
 } else {
     // Handle the case where there are fewer than three elements with the class
-    console.log('There are fewer than three elements with the class "simplebar-content-wrapper"');
+    //console.log('There are fewer than three elements with the class "simplebar-content-wrapper"');
 }
 
       }
-
-      fetchDataEveryFiveSeconds(): void {
-        interval(7000).pipe(
-          switchMap(() => this.chatService.getConversations(this.userId))
-        ).subscribe((conversations: any[]) => {
-          this.conversationsUpdate = conversations;
-          this.conversationsUpdate.forEach(conversation => {
-            this.LoadPicture(conversation);
-             this.getUserPresence(this.getSenderId(conversation)!,conversation);
-           
-          });
-          this.getUserPresence(this.getSenderId(this.selectedConversation)!,this.selectedConversation);
-        }, (error) => {
-          console.error('Error fetching conversations:', error);
-        });
-    
-        interval(3000).pipe(
-          switchMap(() => this.chatService.getMessages(this.selectedConversation.id))
-        ).subscribe((messages: any[]) => {
-          this.messages = messages;
-          console.log("messages: ", this.messages);
-        }, (error) => {
-          console.error('Error fetching messages:', error);
-        });
-      } 
 
       getUserPresence(userId : string,conversation: any): void {
         this.presenceService.getUserPresence(userId).subscribe(
@@ -240,37 +273,266 @@ if (contentWrappers.length >= 3) {
           return conversation.notif;
       }
       return false;}
-      private triggerPusherEvent(recipientUserId: string) {
-        const pusher = new Pusher('1c26d2cd463b15a19666', {
-          cluster: 'eu',
-        });
     
-        const channel = pusher.subscribe('private-' + recipientUserId);
-        channel.bind('new-message', () => {
-          // Optionally, you can fetch conversations here if you want to update the conversation list when a new message arrives
-          // this.fetchConversations();
-        });
-    
-        // Trigger the event
-        channel.trigger('new-message', {}); // Trigger event on the channel, not on the pusher object
+saveAutoMessage(){
+  this.chatService.saveAutoMessage(this.authService.getUserId(),this.autoMessage).subscribe(
+    (response) => {
+      this.clickCancelButton()
+console.log("auto message saved");
+Swal.fire({
+  icon: 'success',
+  title: 'Message automatique sauvegardé !',
+  showConfirmButton: false,
+  timer: 800,
+});
+    },
+    (error) => {
+      console.error('Error adding auto message:', error);
+    }
+  );
+
+
+}
+
+
+clickCancelButton() {
+  if (this.cancelButton) {
+    this.cancelButton.nativeElement.click();
+  }
+  if(this.cancelButtonClient){
+    this.cancelButtonClient.nativeElement.click();
+  }
+  if(this.cancelButtonCompany){
+    this.cancelButtonCompany.nativeElement.click();
+  }
+}
+
+
+getAutoMessage(){
+  this.profileService.getUserProfile(this.userId).subscribe(data =>
+    {
+      this.autoMessage = data.autoMessage;
+      console.log(this.autoMessage);
+    })
+}
+
+LoadData(){
+    this.profileService.getUserProfile(this.userId).subscribe(data =>
+      {
+        //console.log('data from chat component: ',data);
+
+        //console.log('role from chat component: ',data.role);
+        this.isCompanyy= data.role == 'company'
+        this.paypalExist = !!data.paypalEmail;
+        console.log('paypal email data: ',this.paypalExist);
+      })
+  
+}
+
+LoadReceiverData():Promise<void>{
+  return new Promise<void>((resolve, reject) => {
+    console.log('load receiver data :', this.selectedConversation);
+  this.profileService.getUserProfile(this.getSenderId(this.selectedConversation)!).subscribe(data =>
+    {
+      //console.log('data from chat component: ',data);
+
+    console.log('MERCHANT ID: ',data.paypalEmail);
+    this.merchantId = data.paypalEmail;
+    resolve();
+    })
+  });
+}
+appendFirstScript(merchantId : string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    // Create the first script element
+    const s = this.renderer2.createElement('script');
+    s.type = 'text/javascript';
+    s.src = 'https://www.paypal.com/sdk/js?merchant-id='+merchantId+'&client-id=ASNm3WXakzlzfdZ5M7oTK6ggcGhL_fEYYT75QB7CXnHfdkF2ns7UHSnnZhWfBGKhNkU_Ty6gSEfw1EM_';
+    s.async = true;
+
+    // Set up a callback for when the first script is loaded
+    s.onload = () => {
+      resolve();
+    };
+
+    // Append the first script element to the document head
+    this.renderer2.appendChild(this._document.head, s);
+  });
+}
+
+appendSecondScript() {
+  // Create the second script element
+  const ss = this.renderer2.createElement('script');
+  ss.text = `
+  paypal.Buttons({
+    createOrder: function(data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: '${this.amount}'
+          },
+          payee: {
+            email_address: 'achrafhafsia36-facilitator@gmail.com'} // Specify the email address of the recipient
+            // Optionally, you can also specify other details such as merchant ID, etc.
+          
+        }]
+      });
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        // Handle successful payment
+        console.log('Payment successful!');
+        window.onPaymentSuccess();
+        window.openModal();
+      });
+    },
+    onCancel: function(data) {
+      // Handle payment cancellation
+      console.log('Payment cancelled by the user.');
+       window.onCancelPayment();
+    },
+    onError: function(err) {
+      // Handle other errors
+      console.error('An error occurred:', err);
+      // Display error message to the user or take appropriate action
+    }
+  }).render('#paypal-button-container');
+  
+  `;
+  
+  // Append the second script element to the document head
+  this.renderer2.appendChild(this._document.head, ss);
+}
+
+
+
+newPayment(){
+  
+  const payment = {
+    amount : this.amount,
+    sender_id : this.getSenderId(this.selectedConversation),
+    receiver_id : this.userId,
+    conversation_id : this.selectedConversation.id
+
+  }
+  console.log('payment data: ',payment);
+  this.chatService.createPayment(payment).subscribe((data)=>{
+    this.conversations.forEach(convo =>{
+      if(convo.id == this.selectedConversation.id){
+        convo.payment_id = data.payment_id;
+        this.selectedConversation.payment_id = data.payment_id;
+       }
+    })
+    this.clickCancelButton();
+    Swal.fire({
+      icon: 'success',
+      title: 'Payment sauvegardé !',
+      showConfirmButton: false,
+      timer: 800,
+    });
+   
+  })
+}
+
+getPaymentData():any{
+  if(this.selectedConversation.payment_id && this.selectedConversation.payment_id != null){
+  this.chatService.retrievePayment(this.selectedConversation.payment_id).subscribe((data)=>{
+  this.amount = data.amount;
+  this.paymentDone = data.paid ;
+  console.log("payment data: ",data);
+  })
+}
+
+}
+
+
+
+cancelPayment(){
+  
+  this.clickCancelButton();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Payment annulé !',
+      showConfirmButton: false,
+      timer: 800,
+    });
+  
+
+}
+
+cancelPaymentCompany(){
+  
+  this.chatService.deletePayment(this.selectedConversation.payment_id,this.selectedConversation.id).subscribe(()=>{
+    this.clickCancelButton();
+     delete this.selectedConversation.payment_id ;
+    this.amount=0;
+    Swal.fire({
+      icon: 'success',
+      title: 'Payment annulé !',
+      showConfirmButton: false,
+      timer: 800,
+    });
+  })
+
+}
+onPaymentSuccess() {
+  // Triggered when payment is successful
+
+  this.chatService.updatePayment(this.selectedConversation.payment_id,this.selectedConversation.id).subscribe(()=>{
+    this.clickCancelButton()
+    Swal.fire({ title: 'Paiement réussi ! Veuillez vérifier votre e-mail pour les informations de transaction.', icon: 'success' }); 
+  })
+  // Afficher le message de succès
+}
+
+openModal(): void {
+  ($('#feedbackModal') as any).modal('show');
+}
+
+resetModal(): void {
+  if (this.feedbackForm) {
+    ($('#feedbackModal') as any).modal('hide');
+  }
+}
+
+saveFeedback(feedbackForm: NgForm): void {
+  const star = feedbackForm.value.star;
+  const comment = feedbackForm.value.comment;
+  console.log('Star Rating:', star);
+  console.log('Comment:', comment);
+  const data = {
+    feedback_id :this.feedback_id,
+    star,
+    comment,
+    client_id: this.authService.getUserId(),
+    company_id: this.getSenderId(this.selectedConversation),
+  };
+
+  this.chatService.save_feedback(data).subscribe(()=>{
+    Swal.fire({ title: 'avis enregistré !', icon: 'success'});
+
+  });
+  // Add your logic to handle the form submission, such as making an HTTP request to save the feedback
+
+  // Close the modal after saving the feedback
+  ($('#feedbackModal') as any).modal('hide');
+  
+  this.retrieve_feedbackk();
+}
+
+retrieve_feedbackk(){
+  this.chatService.retrieve_feedback(this.authService.getUserId(),this.getSenderId(this.selectedConversation)!).subscribe((data)=>{
+    console.log('feedback data: ',data[0]);
+    const feedbackComment = document.querySelector('textarea[name="comment"]') as HTMLInputElement;
+    feedbackComment.value = data[0].comment;
+    this.feedback_id = data[0].id;
+      const starRadio = document.querySelector(`input[name="star"][value="${data[0].star}"]`) as HTMLInputElement;
+      if (starRadio) {
+        starRadio.checked = true;
       }
-
-
-
-      authenticatePusher() {
-        const channelName = 'new-message';
-        const socketId = '180244.65591157';
-        
-        this.pusherAuthService.authenticatePusher(channelName, socketId)
-          .subscribe(response => {
-            console.log('Pusher authentication successful:', response);
-            // Handle authentication success
-          }, error => {
-            console.error('Pusher authentication failed:', error);
-            // Handle authentication failure
-          });
-      }
-      
+  })
+}
     }
     
   

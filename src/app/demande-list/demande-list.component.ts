@@ -52,7 +52,7 @@ export class DemandeListComponent implements OnInit {
   filteredDemandes: any[] =[];
   minDate: string;
 
-  constructor(private demandeService : DemandeService, private router : Router,private formBuilder: FormBuilder, private authService : AuthService, private datePipe : DatePipe,private chatService : ChatService) { 
+  constructor(private demandeService : DemandeService, private router : Router,private formBuilder: FormBuilder, protected authService : AuthService, private datePipe : DatePipe,private chatService : ChatService) { 
     this.minDate = this.demandeService.getMinDate();
   }
 
@@ -67,7 +67,7 @@ export class DemandeListComponent implements OnInit {
       description: ['', Validators.required],
       depart: ['', Validators.required], // Adding depart field
       destination: ['', Validators.required], // Adding destination field
-      volume: [null, Validators.required], // Adding volume field
+      // Adding volume field
       price: [null, Validators.required],
       date :[null,Validators.required],
 

@@ -18,6 +18,8 @@ import { TokenInterceptor } from './tokenInterceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HomeComponent } from './home/home.component';
 import { ChatComponent } from './chat/chat.component';
+import { PaymentComponent } from './payment/payment.component';
+import { ListOffersVisitorComponent } from './list-offers-visitor/list-offers-visitor.component';
 const routes: Routes = [
 
 {path:'offers',
@@ -36,7 +38,9 @@ children :[
   {path:'forbidden',component:ForbiddenComponent},
   {path:'home',component:HomeComponent},
   {path:'login',component:LoginComponent},
+  {path:'payment',component:PaymentComponent},
   {path:'verify-email',component:VerifyEmailComponent},
+  {path:'visitor-offers',component:ListOffersVisitorComponent},
   {
     path:'admin',
     children :[

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { HomeService } from '../services/home.service';
-
+import { Renderer2, Inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -9,13 +10,14 @@ import { HomeService } from '../services/home.service';
 export class HomeComponent {
 documentCount: any;
   loading: boolean=true;
-
-constructor(private homeService: HomeService){}
+  
+constructor(private homeService: HomeService, private renderer2: Renderer2,
+  @Inject(DOCUMENT) private _document:Document){}
 
 ngOnInit(): void {
   // Initialize loading variable
   this.loading = true;
-
+  this.appendChatbotScript();
   // Introduce a slight delay before fetching data
   setTimeout(() => {
     // Fetch document count
@@ -40,4 +42,29 @@ ngOnInit(): void {
 }
 
   
+appendChatbotScript() {
+  // Create the script element for embedding the chatbot
+  const ss = this.renderer2.createElement('script');
+
+  // Set the type and source attributes
+  this.renderer2.setAttribute(ss, 'src', 'https://www.chatbase.co/embed.min.js');
+  this.renderer2.setAttribute(ss, 'chatbotId', '8ekVZJl4BzPpwUfZ3Xzus');
+  this.renderer2.setAttribute(ss, 'domain', 'www.chatbase.co');
+  this.renderer2.setAttribute(ss, 'defer', '');
+
+  // Add a script element to set the window configuration
+  const configScript = this.renderer2.createElement('script');
+  configScript.text = `
+    window.embeddedChatbotConfig = {
+      chatbotId: "8ekVZJl4BzPpwUfZ3Xzus",
+      domain: "www.chatbase.co"
+    };
+  `;
+
+  // Append the configuration script and the chatbot script to the document head
+  this.renderer2.appendChild(this._document.head, configScript);
+  this.renderer2.appendChild(this._document.head, ss);
+}
+
+
 }

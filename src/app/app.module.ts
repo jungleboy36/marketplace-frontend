@@ -28,6 +28,8 @@ import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { environment } from '../environments/environment';
 import { ChatComponent } from './chat/chat.component';
 import { HomeComponent } from './home/home.component';
+import { PaymentComponent } from './payment/payment.component';
+import { ListOffersVisitorComponent } from './list-offers-visitor/list-offers-visitor.component';
 const firebaseConfig = environment.firebaseConfig;
 @NgModule({
   declarations: [
@@ -52,6 +54,8 @@ const firebaseConfig = environment.firebaseConfig;
     VerifyEmailComponent,
     ChatComponent,
     HomeComponent,
+    PaymentComponent,
+    ListOffersVisitorComponent,
    
     
     

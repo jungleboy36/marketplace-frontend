@@ -47,7 +47,7 @@
                         <!-- Form for adding a demande -->
                         <form (ngSubmit)="addDemande()" [formGroup]="demandeForm">
                             <div class="form-group">
-                                <label>Title</label>
+                                <label>Titre</label>
                                 <input type="text" class="form-control"  formControlName="title" [(ngModel)]="newDemande.title" name="title">
                             </div>
                             <div class="form-group">
@@ -55,7 +55,7 @@
                                 <textarea class="form-control" rows="4"  formControlName="description" [(ngModel)]="newDemande.description" name="description" required></textarea>
                             </div>
                             <div class="form-group">
-                                <label>Depart</label>
+                                <label>Départ</label>
                                 <input type="text" class="form-control"  formControlName="depart" [(ngModel)]="newDemande.depart" name="depart">
                             </div>
                             <div class="form-group">
@@ -65,10 +65,6 @@
                             <div class="form-group">
                                 <label>Date déménagement</label>
                                 <input type="datetime-local" class="form-control"  formControlName="date" [(ngModel)]="newDemande.date" [attr.min]="minDate" name="date">
-                            </div>
-                            <div class="form-group">
-                                <label>Volume(m3)</label>
-                                <input type="number" class="form-control" formControlName="volume" [(ngModel)]="newDemande.volume" name="volume">
                             </div>
                             <div class="form-group">
                                 <label>Budget(€)</label>
@@ -108,15 +104,13 @@
                             <br>
                             <b> depart : </b>{{demandeDetails.destination}}
                             <br>
-                            <b>Volume :</b> {{demandeDetails.volume}} m3
-                            <br>
                             <b> Budget :</b> {{demandeDetails.price}} €
                             <br> Username : {{demandeDetails.username}}
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button"  class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary" (click)="contacter(demandeDetails.user_id,demandeDetails.username)">Contacter</button>
+                        <button type="button"  class="btn btn-secondary" data-dismiss="modal">Retour</button>
+                        <button type="submit" class="btn btn-primary" *ngIf="this.authService.getRole() != 'client'" (click)="contacter(demandeDetails.user_id,demandeDetails.username)">Contacter</button>
                     </div>
                 </div>
             </div>
@@ -137,8 +131,8 @@
                         <a [href]="'/details/' + demande.user_id"><img [src]="demande.picture" alt="Profile Image" class="rounded-circle" style="width: 30px; height: 30px;">
                         <span style="color: black;margin-top:5px;margin-left:5px" ><h6>{{ demande.username }}</h6></span></a>
                     </div>
-                    <small *ngIf="demande.creationDate">{{ demande.creationDate | date }}</small>
-                    <br>
+                    <small style="margin-left: 10px;" *ngIf="demande.creationDate">{{ demande.creationDate | date }}</small>
+                    <hr>
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h3>{{demande.title}}</h3>
                         <div class="dropdown">
@@ -163,7 +157,6 @@
                            <br>
                            <b>date déménagement: </b> {{demande.date | date}}
                            <br> 
-                           <b>Volume: </b> {{demande.volume}} (m3)<br>
                            <b>Départ:</b>Le {{demande.depart}}<br>
                            <b>Destination: </b>Le {{demande.destination}}<br>
 

@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 export class AdminCompaniesComponent {
   companies: any[] = [];
   loading : boolean = true ; 
+  selectedUser : string = '';
   constructor(private adminService: AdminService) {}
 
   ngOnInit(): void {
@@ -38,11 +39,12 @@ export class AdminCompaniesComponent {
   toggleAccountEnabled(company: any, event: Event): void {
     const target = event.target as HTMLInputElement;
     const newStatus = target.checked; // Access the checked property safely
-
+    this.selectedUser = company.uid; // Update local state based on the response
     if (company && typeof newStatus === 'boolean') {
         this.adminService.updateCompanyStatus(company.uid, newStatus).subscribe(
             response => {
-                company.enabled = newStatus; // Update local state based on the response
+                company.enabled = newStatus;
+                this.selectedUser= ''                // Update local state based on the response
                 /* Swal.fire({
                     icon: 'success',
                     title: 'Mise à jour réussie',

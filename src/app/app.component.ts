@@ -1,21 +1,32 @@
-import { Component } from '@angular/core';
-import { Location } from '@angular/common';
-import Pusher from 'pusher-js';
+import { Component, HostListener } from '@angular/core';
+import { AuthService } from './services/auth.service';
+import { PresenceService } from './services/presence.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['../assets/css/style.css']
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'marketplace';
-  constructor() { 
-
-
- 
- 
+  constructor(private authService: AuthService, private presenceService: PresenceService) {
+    this.updateUserStatus(true);
   }
-  
 
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler(event: Event) {
+    this.updateUserStatus(false);
+  }
 
+  updateUserStatus(status: boolean) {
+    const userId = this.authService.getUserId();
+    // Send a request to your backend to update the user's status
+    this.presenceService.updateUserPresence(status,userId, ).subscribe(
+      () => {
+        console.log('User status updated successfully.');
+      },
+      (error) => {
+        console.error('Error updating user status:', error);
+      }
+    );
+  }
 }

@@ -47,7 +47,9 @@
                 <td>{{ company.dateInscription| date: 'dd MMM yyyy'  }}</td>
                 <td><i style="color: red;" class="bx bx-x-circle" *ngIf="!company.enabled" ></i>
                     <i style="color: green;" class="bx bx-check-circle" *ngIf="company.enabled" ></i>
-                    {{ company.enabled ? 'Actif' : 'Désactivé' }}</td>
+                    {{ company.enabled ? 'Actif' : 'Désactivé' }}  <div class="spinner-border" role="status" style="width: 10px; height:10px" *ngIf="company.uid == selectedUser">
+                        <span class="sr-only">Loading...</span>
+                    </div></td>
                 <div class="form-check form-switch">
                     <input
                         class="form-check-input"

@@ -45,7 +45,7 @@
                             <div *ngIf="messages.length == 0" class="no-notification-box" style="margin-left:50px;"><i><small>Aucun nouveau message pour le moment</small></i></div>
 
                             <div *ngFor="let msg of messages">
-                            <a href="#" class="dropdown-item d-flex align-items-center">
+                            <a class="dropdown-item d-flex align-items-center">
                                 <div class="figure">
                                     <img src="{{msg.image}}" class="rounded-circle" alt="image">
                                 </div>
@@ -54,7 +54,7 @@
                                     <div class="text">
                                         <span class="d-block">{{msg.username}}</span>
                                     </div>
-                                    <p class="time-text mb-0">2 pm</p>
+                                    <p class="time-text mb-0">{{msg.time | updateDuration}}</p>
                                 </div>
                             </a>
                         </div>

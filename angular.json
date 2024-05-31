@@ -32,6 +32,8 @@
               "src/assets/css/style.scss",
               "node_modules/leaflet/dist/leaflet.css",
               "src/app/offer-list/offer-list.component.css",
+              "node_modules/font-awesome/css/font-awesome.min.css",
+              "src/app/chat/chat.component.css",
               
 
               "src/assets/homepage/vendor/bootstrap-icons/bootstrap-icons.css",
@@ -141,7 +143,8 @@
               "src/assets/css/vendors.min.css",
               "src/assets/css/style.css",
               "src/assets/css/responsive.css",
-              "node_modules/leaflet/dist/leaflet.js"
+              "node_modules/leaflet/dist/leaflet.js",
+              "node_modules/font-awesome/css/font-awesome.min.css"
             ],
             "scripts": [
             ]

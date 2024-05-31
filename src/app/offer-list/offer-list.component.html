@@ -27,26 +27,27 @@
         
         <!-- Offer modal -->
         <!-- Button trigger modal -->
-        <button type="button" class="btn btn-primary" style="width: 165px;" data-toggle="modal" data-target="#basicModal" *ngIf="isCompany()">
+        <button type="button" class="btn btn-primary" style="width: 165px;" data-toggle="modal" data-target="#basicModal" *ngIf="isCompany()" (click)="mapModal()">
             + Ajouter
         </button>
             
         <div style="width:200px; margin-left:1000px;margin-top:-90px">
             <select class="form-control inline-block" [(ngModel)]="filterOption" (change)="applyFilter()" style="margin-bottom: 10px;"  *ngIf="isCompany()">
-                <option value="all" selected>Tous les offres</option>
+                <option value="all" selected>Toutes les offres</option>
                 <option value="mine">Mes offres</option>
               </select>
+             <!-- <button type="button" class="btn btn-secondary" style="width:200px;">Filtrer</button> <br>-->
             <input type="text" class="form-control inline-block" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="applyFilter()" *ngIf="isCompany()" >
             <input type="text" class="form-control inline-block" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="applyFilter()" *ngIf="! isCompany()" style="margin-top:40px" >
 
         </div>
         <!-- Modal -->
-        <div class="modal fade" id="basicModal" role="dialog" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+        <div class="modal fade basicModalXL" id="basicModal" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document" style="width: 1000px;margin-left:350px">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Add Offer</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <h5 class="modal-title">Ajouter offre</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" #addOfferModal>
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -54,7 +55,7 @@
                         <!-- Form for adding an offer -->
                         <form (ngSubmit)="addOffer()" [formGroup]="offerForm">
                             <div class="form-group">
-                                <label>Title</label>
+                                <label>Titre</label>
                                 <input type="text" class="form-control" [(ngModel)]="newOffer.title" formControlName="title" name="title" required>
                             </div>
                             <div class="form-group">
@@ -62,43 +63,35 @@
                                 <textarea class="form-control" rows="4" [(ngModel)]="newOffer.description" formControlName="description" name="description" required></textarea>
                             </div>
                             <div class="form-group">
-                                <label>Departure Date</label>
-                                <input type="datetime-local" class="form-control" [(ngModel)]="newOffer.depart_date" formControlName="depart_date" [attr.min]="minDate"  name="depart_date">
+                                <label>Date Départ</label>
+                                <input type="date" class="form-control" [(ngModel)]="newOffer.depart_date" formControlName="depart_date" [attr.min]="minDate"  name="depart_date">
                             </div>
                             <div class="form-group">
-                                <label>Arrival Date</label>
-                                <input type="datetime-local" class="form-control" [(ngModel)]="newOffer.arrival_date" formControlName="arrival_date" [attr.min]="minDate" name="arrival_date">
+                                <label>Date Arrivé</label>
+                                <input type="date" class="form-control" [(ngModel)]="newOffer.arrival_date" formControlName="arrival_date" [attr.min]="minDate" name="arrival_date">
                             </div>
                             <div class="form-group">
-                                <label>Itinerary</label>
-                                <textarea class="form-control" rows="4" [(ngModel)]="newOffer.itinerary" formControlName="itinerary" name="itinerary"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Volume</label>
-                                <input type="number" class="form-control" [(ngModel)]="newOffer.volume" formControlName="volume" name="volume">
-                            </div>
-                            <div class="form-group">
-                                <label>Itinerary</label>
-                                <div id="map" style="height: 300px;"></div>
-                                <button class="btn btn-primary mt-2" (click)="confirmItinerary()">Confirm Itinerary</button>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Price</label>
-                                <input type="number" class="form-control" [(ngModel)]="newOffer.price" formControlName="price" name="price">
-                            </div>
-                            <div class="form-group">
-                                <label>Itinerary</label>
-                                <div id="map" style="height: 300px;"></div>
-                                <button class="btn btn-primary mt-2" (click)="confirmItinerary()">Confirm Itinerary</button>
-                            </div>
-                            
+                                <label for="origin">Départ</label>
+                                <input type="text" id="origin" class="form-control" placeholder="Saisir le lieu de départ">
+                                <ul id="origin-suggestions" class="list-group"></ul>
+                              </div>
+                              <div class="form-group">
+                                <label for="destination">Destination</label>
+                                <input type="text" id="destination" class="form-control" placeholder="Saisir le lieu de destination">
+                                <ul id="destination-suggestions" class="list-group"></ul>
+                              </div>
+                        
+                           
+                            <div id="map" class="form-group" style="height: 400px; width: 100%;"></div>
+                         
+                            <button type="button" class="btn btn-info btn-sm" (click)="removeAllPins()">réinitialiser la carte</button>                          
+
                             <!-- Add more fields as needed -->
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid" (click)="addOffer()">Ajouter</button>
+                        <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary" (click)="addOffer()">Ajouter</button>
                     </div>
                 </div>
             </div>
@@ -121,20 +114,18 @@
                             <br>
                             <b>Description :</b> {{offerDetails.description}}
                             <br>
-                            <b>Date Départ : </b>{{offerDetails.depart_date_formatted}}
+                            <b>Date Départ : </b>{{offerDetails | date :'yyyy-MM-dd '}}
                             <br>
-                            <b>Date Arrivé :</b> {{offerDetails.arrival_date_formatted}}
+                            <b>Date Arrivé :</b> {{offerDetails | date :'yyyy-MM-dd '}}
                             <br>
                             <b> Itineraire : </b>{{offerDetails.itinerary}}
                             <br>
-                            <b>Volume :</b> {{offerDetails.volume}} m3
-                            <br>
-                            <b> Prix :</b> {{offerDetails.price}} €
+                           
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid">Contacter</button>
+                        <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Retour</button>
+                        <button type="submit" class="btn btn-primary" *ngIf="!isCompany() && !belongs(offerDetails.user_id)" (click)="contacter(offerDetails.user_id,offerDetails.username)">Contacter</button>
                     </div>
                 </div>
             </div>
@@ -150,15 +141,16 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-lg-4 col-md-6" *ngFor="let offer of filteredOffers  ">
+            <div class="col-lg-4 col-md-6 " *ngFor="let offer of filteredOffers  ">
                 <div class="card mb-30">
-                    
+
                     
                     <div class="user-info">
                         <a [href]="'/details/' + offer.user_id"><img [src]="offer.picture" alt="Profile Image" class="rounded-circle" style="width: 30px; height: 30px;">
                         <span style="color: black;margin-top:5px;margin-left:5px" ><h6>{{ offer.username }}</h6></span></a>
                     </div>
-                    <br>
+                    <hr>
+                    
                     <div class="card-header d-flex justify-content-between align-items-center">
                         
                         <h3>{{offer.title}}</h3>
@@ -185,12 +177,9 @@
                         <p><b>Description: </b>{{offer.description}}
                            <br>
                            <b>Itineraire: </b> {{offer.itinerary}}
-                           <br> 
-                           <b>Volume: </b> {{offer.volume}} (m3)<br>
-                           <b>Date depart: </b>Le {{offer.depart_date | date :'yyyy-MM-dd à HH:mm'}}<br>
-                           <b>Date arrivé: </b>Le {{offer.arrival_date | date :'yyyy-MM-dd à HH:mm'}}<br>
-
-                           <b>Prix: </b>{{offer.price}} €
+                           <br>
+                           <b>Date depart: </b>Le {{offer.depart_date | date :'yyyy-MM-dd '}}<br>
+                           <b>Date arrivé: </b>Le {{offer.arrival_date | date :'yyyy-MM-dd '}}<br>
                         </p>
                         
                     </div>

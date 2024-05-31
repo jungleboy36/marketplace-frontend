@@ -8,7 +8,7 @@ style="width: 100xp;" <app-sidebar></app-sidebar>
       <div class="card-body">
         <form #offerForm="ngForm" (ngSubmit)="updateOffer()" novalidate *ngIf="offer">
           <div class="form-group">
-              <label>Title</label>
+              <label>Titre</label>
               <input type="text" class="form-control" [(ngModel)]="offer.title" name="title" required>
           </div>
           <div class="form-group">
@@ -17,29 +17,24 @@ style="width: 100xp;" <app-sidebar></app-sidebar>
           </div>
           <!-- Add new fields based on the updated offer model -->
           <div class="form-group">
-              <label>Depart Date</label>
+              <label>Date Départ</label>
               <input type="datetime-local" class="form-control" [(ngModel)]="offer.depart_date_formatted" name="depart_date" [attr.min]="minDate" required>
             </div>
           <div class="form-group">
-              <label>Arrival Date</label>
+              <label>Date Arrivé</label>
               <input type="datetime-local" class="form-control" [(ngModel)]="offer.arrival_date_formatted" name="arrival_date" [attr.min]="minDate" required>
           </div>
           <div class="form-group">
-              <label>Itinerary</label>
+              <label>Itineraire</label>
               <textarea class="form-control" rows="4" [(ngModel)]="offer.itinerary" name="itinerary" required></textarea>
           </div>
-          <div class="form-group">
-              <label>Volume</label>
-              <input type="number" class="form-control" [(ngModel)]="offer.volume" name="volume" required>
-          </div>
-          <div class="form-group">
-              <label>Price</label>
-              <input type="number" class="form-control" [(ngModel)]="offer.price" name="price" required>
-          </div>
+         
           <!-- End new fields -->
-          <button type="button" class="btn btn-secondary" style="margin-right:20px" (click)="goBack()">Annuler</button>
+          <div style="margin-left: 450px;">
+          <button type="button" class="btn btn-secondary" style="margin-right:10px" (click)="goBack()">Annuler</button>
           
           <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid">Modifier</button>
+        </div>
         </form>
       </div>
     </div>

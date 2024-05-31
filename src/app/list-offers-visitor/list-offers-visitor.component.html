@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Logis Bootstrap Template - Index</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <link href="assets/homepage/img/favicon.png" rel="icon">
+  <link href="assets/homepage/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+
+  <!-- =======================================================
+  * Template Name: Logis
+  * Template URL: https://bootstrapmade.com/logis-bootstrap-logistics-website-template/
+  * Updated: Mar 17 2024 with Bootstrap v5.3.3
+  * Author: BootstrapMade.com
+  * License: https://bootstrapmade.com/license/
+  ======================================================== -->
+</head>
+
+<body>
+
+  <!-- ======= Header ======= -->
+  <header style="background-color: rgb(39, 39, 80); height:70px" id="header" class="header d-flex align-items-center fixed-top">
+    <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
+
+      <a href="index.html" class="logo d-flex align-items-center">
+        <!-- Uncomment the line below if you also wish to use an image logo -->
+        <!-- <img src="assets/img/logo.png" alt=""> -->
+        <h1>Assistline</h1>
+      </a>
+
+      <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
+      <i class="mobile-nav-toggle mobile-nav-hide d-none bi bi-x"></i>
+      <nav id="navbar" class="navbar" style="margin-right: -50px;">
+        <ul>
+          <li><a class="get-a-quote" style="background-color: rgb(0, 118, 168)" href="/signup">Inscrivez-vous</a></li>
+
+          <li><a class="get-a-quote" style="background-color: red" href="/login"> Se connecter</a></li>
+        </ul>
+      </nav><!-- .navbar -->
+</div></header>
+
+<div class="main-content d-flex flex-column" style="margin-right: 200px;margin-top:100px">
+<br>
+<h2>Les offres</h2>
+
+
+<!-- Offer modal -->
+<!-- Button trigger modal -->
+
+<div style="width:200px; margin-left:750px;margin-top:-35px">
+    
+    <input type="text" class="form-control inline-block" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="applyFilter()"  >
+
+</div>
+<!-- Modal -->
+
+<!-- Info Modal -->
+<div class="modal fade" id="infoModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Details du l'offre</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Display offer details -->
+                <p>
+                    <b>Titre : </b>{{offerDetails.title}}
+                    <br>
+                    <b>Description :</b> {{offerDetails.description}}
+                    <br>
+                    <b>Date Départ : </b>{{offerDetails.depart_date | date :'yyyy-MM-dd '}}
+                    <br>
+                    <b>Date Arrivé :</b> {{offerDetails.arrival_date | date :'yyyy-MM-dd '}}
+                    <br>
+                    <b> Itineraire : </b>{{offerDetails.itinerary}}
+                    <br>
+                    <b>Volume (m3):</b> {{offerDetails.volume}} 
+                    <br>
+                    
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Retour</button>
+               <a href="/register"> <button type="submit" class="btn btn-primary" *ngIf="!isCompany() && !belongs(offerDetails.user_id)" >Contacter</button></a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Info Modal -->
+
+<!-- Existing code for displaying offers -->
+<hr>
+<br>
+<div class="d-flex justify-content-center" *ngIf="loading">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-4 col-md-6" *ngFor="let offer of filteredOffers  ">
+        <div class="card mb-30">
+            
+            
+            <div class="user-info">
+                <img [src]="offer.picture" alt="Profile Image" class="rounded-circle" style="width: 30px; height: 30px;">
+                <span style="color: black;margin-top:5px;margin-left:5px" ><h6>{{ offer.username }}</h6></span>
+            </div>
+            <br>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                
+                <h3>{{offer.title}}</h3>
+                
+                <div class="dropdown">
+                    <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class='bx bx-dots-horizontal-rounded'></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item d-flex align-items-center" data-toggle="modal" data-target="#infoModal" (click)="openInfoModal(offer.id)">
+                            <i class='bx bx-show' style="color: rgb(76, 76, 187);"></i> Voir
+                        </a>
+                    
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body" style="margin-top: -20px;">
+                <p><b>Description: </b>{{offer.description}}
+                   <br>
+                   <b>Itineraire: </b> {{offer.itinerary}}
+                   <br> 
+                   <b>Volume: </b> {{offer.volume}} (m3)<br>
+                   <b>Date depart: </b>Le {{offer.depart_date | date :'yyyy-MM-dd '}}<br>
+                   <b>Date arrivé: </b>Le {{offer.arrival_date | date :'yyyy-MM-dd '}}<br>
+
+                </p>
+                
+            </div>
+
+            <div class="card-footer" *ngIf="offer.updateDate">
+                <small>Derniere mise a jour: {{ offer.updateDate | updateDuration }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+</body></html>

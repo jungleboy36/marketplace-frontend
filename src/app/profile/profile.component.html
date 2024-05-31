@@ -157,7 +157,16 @@
                                                 <div class="form-group form-check" style="margin-left: 30px;" >
                                                 <input type="checkbox" class="form-check-input" id="exampleCheck1" formControlName="hideEmail">
                                                 <label class="form-check-label" for="exampleCheck1" >Cacher mon email</label>
+                                                
                                             </div>
+                                            <div *ngIf="userProfile.role == 'company'">
+                                            <br>
+                                            <h3><i class='bx bx-money'></i>Payment</h3>
+                                            <div class="form-group" style="margin-left: 30px;width:250px;" >
+                                            <label  for="paypalAccount" >Entrer votre email paypal</label>
+                                            <input type="text" style="height:30px;" class="form-control"  formControlName="paypalEmail" id="paypalEmail">
+                                        </div>
+                                        </div>
 
                                         </div>
 

@@ -59,7 +59,5 @@ export class ChatService {
   retrieve_feedback(client_id : string, company_id: string) : Observable<any>{
     return this.http.get<any>(`${this.baseUrl}/retrieve_feedback/?client_id=${client_id}&company_id=${company_id}`);
   }
-  retrieve_feedbacks( company_id: string) : Observable<any>{
-    return this.http.get<any>(`${this.baseUrl}/retrieve_feedback/?company_id=${company_id}`);
-  }
+ 
 }

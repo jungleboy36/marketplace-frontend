@@ -56,26 +56,31 @@
                             </div>
                             <div class="form-group">
                                 <label>Départ</label>
-                                <input type="text" class="form-control"  formControlName="depart" [(ngModel)]="newDemande.depart" name="depart">
+                                <input type="text" class="form-control"  formControlName="depart" [(ngModel)]="newDemande.depart" name="depart" id="origin" required>
+                                <ul id="origin-suggestions" class="list-group" ></ul>
+
                             </div>
                             <div class="form-group">
                                 <label>Destination</label>
-                                <input type="text" class="form-control"  formControlName="destination" [(ngModel)]="newDemande.destination" name="destination">
+                                <input type="text" class="form-control"  formControlName="destination" [(ngModel)]="newDemande.destination" id="destination" name="destination"  required>
+                                <ul id="destination-suggestions" class="list-group" ></ul>
                             </div>
                             <div class="form-group">
                                 <label>Date déménagement</label>
-                                <input type="datetime-local" class="form-control"  formControlName="date" [(ngModel)]="newDemande.date" [attr.min]="minDate" name="date">
+                                <input type="date" class="form-control"  formControlName="date"  [attr.min]="minDate" name="date" id="date" required>
                             </div>
                             <div class="form-group">
                                 <label>Budget(€)</label>
-                                <input type="number" class="form-control"  formControlName="price" [(ngModel)]="newDemande.price" name="price">
+                                <input type="number" class="form-control"  formControlName="price" [(ngModel)]="newDemande.price" name="price" required>
                             </div>
                             <!-- Add more fields as needed -->
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary" [disabled]="!demandeForm.valid" (click)="addDemande()">Ajouter</button>
+                        <button type="submit" class="btn btn-primary" [disabled]="!demandeForm.valid || isAdding" (click)="addDemande()"><div class="spinner-border text-light" style="width:15px;height:15px; margin-right:5px" role="status" *ngIf="isAdding" >
+                            <span class="sr-only">Loading...</span>
+                        </div>Ajouter</button>
                     </div>
                 </div>
             </div>

@@ -53,7 +53,7 @@ getMinDate(): string {
   const year = today.getFullYear();
 
   // Format the minimum date string in a way that datetime-local input expects
-  return `${year}-${month}-${day}T00:00`;
+  return `${year}-${month}-${day}`;
 }
 
 }

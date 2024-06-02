@@ -25,5 +25,7 @@ export class ProfileService {
   }
 
 
- 
+  retrieve_feedbacks( company_id: string) : Observable<any>{
+    return this.http.get<any>(`${this.apiUrl}/retrieve_feedback/?company_id=${company_id}`);
+  }
 }

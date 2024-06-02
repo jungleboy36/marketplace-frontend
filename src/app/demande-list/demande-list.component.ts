@@ -7,6 +7,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { DatePipe } from '@angular/common';
 import { ChatService } from '../services/chat.service';
+import * as L from 'leaflet';
+import 'leaflet-routing-machine';
+import * as LCG from 'leaflet-control-geocoder';
 @Component({
   selector: 'app-offer-list',
   templateUrl: './demande-list.component.html',
@@ -19,6 +22,7 @@ export class DemandeListComponent implements OnInit {
   searchQuery: string = '';
   filterOption: string = 'all';
   role : string | null = null;
+  isAdding : boolean = false;
   newDemande:any = {
     id: null,
     title: null,
@@ -73,6 +77,57 @@ export class DemandeListComponent implements OnInit {
 
 
     });
+    const originInput = document.getElementById('origin') as HTMLInputElement;
+    const destinationInput = document.getElementById('destination') as HTMLInputElement;
+    const originSuggestions = document.getElementById('origin-suggestions') as HTMLUListElement;
+    const destinationSuggestions = document.getElementById('destination-suggestions') as HTMLUListElement;
+    console.log("origin input:",originInput);
+    const geocoder = LCG.geocoder({
+      defaultMarkGeocode: false,
+      geocoder: new (L.Control as any).Geocoder.Nominatim({
+        geocodingQueryParams: {
+          countrycodes: 'fr',  },
+      }),
+    });
+    const showSuggestions = (query: string, suggestionsElement: HTMLUListElement, inputElement: HTMLInputElement) => {
+      geocoder.options.geocoder!.geocode(query, (results) => {
+        suggestionsElement.innerHTML = '';
+        results.forEach(result => {
+          console.log("result: ",result);
+          const suggestionItem = document.createElement('li');
+          suggestionItem.classList.add('list-group-item');
+          suggestionItem.textContent = result.name;
+          suggestionItem.addEventListener('click', () => {
+            inputElement.value = result.name;
+            suggestionsElement.innerHTML = '';
+           
+          });
+          suggestionsElement.appendChild(suggestionItem);
+        
+      })}
+      )}
+
+    originInput.addEventListener('keyup', (event) => {
+      const query = (event.target as HTMLInputElement).value;
+      if (query.length > 2) {
+        console.log("origin input typing...");
+
+        showSuggestions(query, originSuggestions, originInput);
+      } else {
+        originSuggestions.innerHTML = '';
+      }
+    });
+
+    destinationInput.addEventListener('keyup', (event) => {
+   
+      const query = (event.target as HTMLInputElement).value;
+      if (query.length > 2) {
+        showSuggestions(query, destinationSuggestions, destinationInput);
+      } else {
+        destinationSuggestions.innerHTML = '';
+      }
+    });
+    
   }
   
   clickCancelButton() {
@@ -151,8 +206,11 @@ export class DemandeListComponent implements OnInit {
   }
 
   addDemande() {
+    this.isAdding = true;
     if (this.demandeForm.valid) {
     this.newDemande.user_id = this.authService.getUserId();
+    const date = document.getElementById('date') as HTMLInputElement;
+    this.newDemande.date = JSON.stringify(date.value);
     this.demandeService.addDemande(this.newDemande).subscribe(
         (response) => {
             // Handle successful response
@@ -168,12 +226,17 @@ export class DemandeListComponent implements OnInit {
             // Optionally, refresh the offer list after adding a new offer
             this.loadDemandes();
             // Close the modal after adding the offer
+            this.isAdding = false;
+
         },
         (error) => {
             // Handle error
             this.errorMessage = error;
+            this.isAdding = false;
+
         }
     );
+
 }
   }
 

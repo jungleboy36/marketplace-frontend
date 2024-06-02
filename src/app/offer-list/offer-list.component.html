@@ -51,9 +51,10 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
+                    <form (ngSubmit)="addOffer()" [formGroup]="offerForm">
                     <div class="modal-body">
                         <!-- Form for adding an offer -->
-                        <form (ngSubmit)="addOffer()" [formGroup]="offerForm">
+                       
                             <div class="form-group">
                                 <label>Titre</label>
                                 <input type="text" class="form-control" [(ngModel)]="newOffer.title" formControlName="title" name="title" required>
@@ -64,64 +65,60 @@
                             </div>
                             <div class="form-group">
                                 <label>Date Départ</label>
-                                <input type="date" class="form-control" [(ngModel)]="newOffer.depart_date" formControlName="depart_date" [attr.min]="minDate"  name="depart_date">
+                                <input type="date" class="form-control" [(ngModel)]="newOffer.depart_date" formControlName="depart_date" [attr.min]="minDate"  name="depart_date" required>
                             </div>
                             <div class="form-group">
                                 <label>Date Arrivé</label>
-                                <input type="date" class="form-control" [(ngModel)]="newOffer.arrival_date" formControlName="arrival_date" [attr.min]="minDate" name="arrival_date">
+                                <input type="date" class="form-control" [(ngModel)]="newOffer.arrival_date" formControlName="arrival_date" [attr.min]="minDate" name="arrival_date" required>
                             </div>
                             <div class="form-group">
                                 <label for="origin">Départ</label>
-                                <input type="text" id="origin" class="form-control" placeholder="Saisir le lieu de départ">
+                                <input type="text" id="origin" class="form-control" [(ngModel)]="newOffer.origin" formControlName="origin" name="origin" placeholder="Saisir le lieu de départ" required>
                                 <ul id="origin-suggestions" class="list-group"></ul>
                               </div>
                               <div class="form-group">
                                 <label for="destination">Destination</label>
-                                <input type="text" id="destination" class="form-control" placeholder="Saisir le lieu de destination">
+                                <input type="text" id="destination" class="form-control" [(ngModel)]="newOffer.destination" formControlName="destination" name="destination" placeholder="Saisir le lieu de destination" required>
                                 <ul id="destination-suggestions" class="list-group"></ul>
                               </div>
                         
                            
                             <div id="map" class="form-group" style="height: 400px; width: 100%;"></div>
                          
-                            <button type="button" class="btn btn-info btn-sm" (click)="removeAllPins()">réinitialiser la carte</button>                          
+                            <button type="button" class="btn btn-info btn-sm"  (click)="removeAllPins()">réinitialiser la carte</button>                          
 
                             <!-- Add more fields as needed -->
-                        </form>
+                        
                     </div>
                     <div class="modal-footer">
                         <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary" (click)="addOffer()">Ajouter</button>
+                        <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid || isAdding" (click)="addOffer()"><div class="spinner-border text-light" style="width:15px;height:15px" role="status" *ngIf="isAdding" >
+                            <span class="sr-only">Loading...</span>
+                        </div> Ajouter</button>
                     </div>
+                </form>
                 </div>
             </div>
         </div>
 
         <!-- Info Modal -->
-        <div class="modal fade" id="infoModal" role="dialog" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+        <div class="modal fade basicModalXL" id="infoModal" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document" style="width: 1000px;margin-left:350px">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Details du l'offre</h5>
+                        <h5 class="modal-title">Itineraire</h5><div class="spinner-border text-dark" style="width:15px;height:15px; margin-left:10px" role="status" *ngIf="mapLoading" >
+                            <span class="sr-only">Loading...</span>
+                        </div>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
                         <!-- Display offer details -->
-                        <p>
-                            <b>Titre : </b>{{offerDetails.title}}
-                            <br>
-                            <b>Description :</b> {{offerDetails.description}}
-                            <br>
-                            <b>Date Départ : </b>{{offerDetails | date :'yyyy-MM-dd '}}
-                            <br>
-                            <b>Date Arrivé :</b> {{offerDetails | date :'yyyy-MM-dd '}}
-                            <br>
-                            <b> Itineraire : </b>{{offerDetails.itinerary}}
-                            <br>
-                           
-                        </p>
+                    <div id="modalMap" class="form-group" style="height: 400px; width: 100%;">
+
+                       
+                    </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" #cancelButton class="btn btn-secondary" data-dismiss="modal">Retour</button>
@@ -176,8 +173,8 @@
                     <div class="card-body" style="margin-top: -20px;">
                         <p><b>Description: </b>{{offer.description}}
                            <br>
-                           <b>Itineraire: </b> {{offer.itinerary}}
-                           <br>
+                           <b>Départ: </b> {{offer.origin}}<br>
+                           <b>Destination: </b> {{offer.destination}} <br>
                            <b>Date depart: </b>Le {{offer.depart_date | date :'yyyy-MM-dd '}}<br>
                            <b>Date arrivé: </b>Le {{offer.arrival_date | date :'yyyy-MM-dd '}}<br>
                         </p>

@@ -103,7 +103,7 @@
                 <li class="nav-item dropdown profile-nav-item" >
                     <a href="#" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <div class="menu-profile">
-                            <span class="name">Bonjour! {{ authService.infoUser.display_name }}</span>
+                            <span class="name">Bonjour! {{ display_name }}</span>
                             <img [src]="profileImageUrl" alt="Profile Image" *ngIf="profileImageUrl" class="rounded-circle" >
                         </div>
                     </a>
@@ -115,8 +115,8 @@
                             </div>
                 
                             <div class="info text-center">
-                                <span class="name">{{ authService.infoUser.display_name }}</span>
-                                <p class="mb-3 email">{{ authService.infoUser.email }}</p>
+                                <span class="name">{{ display_name }}</span>
+                                <p class="mb-3 email">{{ email }}</p>
                             </div>
                         </div>
                 

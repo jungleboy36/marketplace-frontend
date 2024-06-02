@@ -1,4 +1,18 @@
-style="width: 100xp;" <app-sidebar></app-sidebar>
+<html lang="zxx">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="icon" type="image/png" src="../../assets/img/favicon.png">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+</head>
+ <app-sidebar></app-sidebar>
 <div class="main-content d-flex flex-column">
   <app-navbar></app-navbar>
   <br><div class="d-flex justify-content-center"><h2>Modifier Offre</h2></div><hr><br>
@@ -6,37 +20,57 @@ style="width: 100xp;" <app-sidebar></app-sidebar>
   <div class="d-flex justify-content-center">
     <div class="card" style="width: 700px;">
       <div class="card-body">
-        <form #offerForm="ngForm" (ngSubmit)="updateOffer()" novalidate *ngIf="offer">
+        <div *ngIf="!offer" style="margin-left: 260px;"><div class="spinner-grow text-dark" role="status">
+          <span class="sr-only">Loading...</span>
+      </div><div class="spinner-grow text-dark"style="margin-left: 20px;" role="status">
+        <span class="sr-only" >Loading...</span>
+    </div><div class="spinner-grow text-dark" style="margin-left: 20px;" role="status">
+      <span class="sr-only">Loading...</span>
+  </div></div>
+        <form [formGroup]="offerForm" (ngSubmit)="updateOffer()" [hidden]="!offer">
+         
           <div class="form-group">
               <label>Titre</label>
-              <input type="text" class="form-control" [(ngModel)]="offer.title" name="title" required>
+              <input type="text" class="form-control" [(ngModel)]="offer.title" formControlName="title" name="title" required >
           </div>
           <div class="form-group">
               <label>Description</label>
-              <textarea class="form-control" rows="4" [(ngModel)]="offer.description" name="description" required></textarea>
+              <textarea class="form-control" rows="4" [(ngModel)]="offer.description" formControlName="description" name="description" required></textarea>
           </div>
           <!-- Add new fields based on the updated offer model -->
           <div class="form-group">
               <label>Date Départ</label>
-              <input type="datetime-local" class="form-control" [(ngModel)]="offer.depart_date_formatted" name="depart_date" [attr.min]="minDate" required>
+              <input type="date" class="form-control" [(ngModel)]="offer.depart_date" formControlName="depart_date" name="depart_date" [attr.min]="minDate" required>
             </div>
           <div class="form-group">
               <label>Date Arrivé</label>
-              <input type="datetime-local" class="form-control" [(ngModel)]="offer.arrival_date_formatted" name="arrival_date" [attr.min]="minDate" required>
+              <input type="date" class="form-control" [(ngModel)]="offer.arrival_date" formControlName="arrival_date" name="arrival_date" [attr.min]="minDate" required>
           </div>
           <div class="form-group">
-              <label>Itineraire</label>
-              <textarea class="form-control" rows="4" [(ngModel)]="offer.itinerary" name="itinerary" required></textarea>
-          </div>
+            <label>Départ</label>
+            <input type="text" class="form-control" [(ngModel)]="offer.origin" formControlName="origin" id="origin" name="origin" required [readOnly]="!mapResetted">
+            <ul id="origin-suggestions" class="list-group" [hidden]="!mapResetted"></ul>
+        </div>
+        <div class="form-group">
+          <label>Destination</label>
+          <input type="text" class="form-control" [(ngModel)]="offer.destination"  formControlName="destination" id="destination" name="destination" [readOnly]="!mapResetted" required>
+          <ul id="destination-suggestions" class="list-group" [hidden]="!mapResetted"></ul>
+        </div>
          
+          <div id="map" class="form-group" ></div>
+                         
+      <button type="button" class="btn btn-info btn-sm"  (click)="removeAllPins()">réinitialiser la carte</button>  
           <!-- End new fields -->
           <div style="margin-left: 450px;">
           <button type="button" class="btn btn-secondary" style="margin-right:10px" (click)="goBack()">Annuler</button>
           
-          <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid">Modifier</button>
+          <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid"> <div class="spinner-border text-light" style="width:15px;height:15px; margin-right:5px" role="status" *ngIf="isAdding" >
+            <span class="sr-only">Loading...</span>
+        </div>Modifier</button>
         </div>
         </form>
       </div>
     </div>
   </div>
 </div>
+</html>

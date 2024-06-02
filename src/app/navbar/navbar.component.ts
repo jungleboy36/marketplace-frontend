@@ -15,7 +15,14 @@ export class NavbarComponent implements OnInit {
   notifications: any[] = [];
   messages : any[] = [];
   message : any = {};
+  display_name :any;
+  email : any;
   constructor(public authService: AuthService,private profileService: ProfileService,private location: Location) {
+    this.email = localStorage.getItem('email');
+    this.display_name = localStorage.getItem('display_name');
+    this.profileImageUrl = localStorage.getItem('profileImageUrl');
+    
+ 
     const currentUrl = this.location.path();
     const pusher = new Pusher('1c26d2cd463b15a19666', {
       cluster: 'eu',

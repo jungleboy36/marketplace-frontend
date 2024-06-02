@@ -19,22 +19,34 @@ export class AdminCompaniesComponent {
   }
 
   loadCompanies(): void {
-    this.adminService.getCompanies().subscribe(
-      response => {
-        this.companies = response;
-        this.loading = false ;
-
-      },
-      error => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: 'Erreur lors du chargement des données.',
-          confirmButtonText: 'OK'
-        });
-      }
-    );
+    const cachedCompanies = localStorage.getItem('companies');
+    
+    if (cachedCompanies) {
+      // If companies are found in localStorage, parse and set them
+      this.companies = JSON.parse(cachedCompanies);
+      this.loading = false;
+    } else {
+      // If not, make the API call
+      this.adminService.getCompanies().subscribe(
+        response => {
+          this.companies = response;
+          // Store the response in localStorage
+          localStorage.setItem('companies', JSON.stringify(this.companies));
+          this.loading = false;
+        },
+        error => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Erreur',
+            text: 'Erreur lors du chargement des données.',
+            confirmButtonText: 'OK'
+          });
+          this.loading = false;
+        }
+      );
+    }
   }
+  
 
   toggleAccountEnabled(company: any, event: Event): void {
     const target = event.target as HTMLInputElement;
@@ -85,5 +97,24 @@ export class AdminCompaniesComponent {
         });
       }
     );
+  }
+
+  isNew(dateInscription: string): boolean {
+    const currentDate = new Date();
+    const tomorrow = new Date(currentDate);
+    tomorrow.setDate(currentDate.getDate() + 1);
+  
+    // Parse the dateInscription string into a Date object
+    const parsedDate = new Date(dateInscription);
+  
+    // Normalize the dates to remove time component for comparison
+    const normalizeDate = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  
+    const normalizedDate = normalizeDate(parsedDate);
+    const normalizedCurrentDate = normalizeDate(currentDate);
+    const normalizedTomorrow = normalizeDate(tomorrow);
+  
+    return normalizedDate.getTime() === normalizedCurrentDate.getTime() || 
+           normalizedDate.getTime() === normalizedTomorrow.getTime();
   }
 }

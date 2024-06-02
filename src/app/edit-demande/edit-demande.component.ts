@@ -3,7 +3,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DemandeService } from '../services/demande.service';
 import Swal from 'sweetalert2';
 import { DatePipe } from '@angular/common';
-
+import * as L from 'leaflet';
+import 'leaflet-routing-machine';
+import * as LCG from 'leaflet-control-geocoder';
 @Component({
   selector: 'app-edit-offer',
   templateUrl: './edit-demande.component.html',
@@ -11,6 +13,7 @@ import { DatePipe } from '@angular/common';
 })
 export class EditDemandeComponent {
   minDate: string;
+  isAdding : boolean = false;
   constructor(private route: ActivatedRoute, public router : Router ,private demandeService: DemandeService,private datePipe: DatePipe) { 
     this.minDate = this.demandeService.getMinDate();
 
@@ -21,19 +24,73 @@ export class EditDemandeComponent {
     this.demandeService.getDemandeById(demandeId!).subscribe(
       (demande) => {
         this.demande = demande;
-        this.demande.date = this.datePipe.transform(this.demande.date!, 'yyyy-MM-ddTHH:mm');
+        this.demande.date = JSON.parse(this.demande.date);
       },
       (error) => {
         console.error('Error fetching offer:', error);
       }
     );
+
+    const originInput = document.getElementById('origin') as HTMLInputElement;
+    const destinationInput = document.getElementById('destination') as HTMLInputElement;
+    const originSuggestions = document.getElementById('origin-suggestions') as HTMLUListElement;
+    const destinationSuggestions = document.getElementById('destination-suggestions') as HTMLUListElement;
+    console.log("origin input:",originInput);
+    const geocoder = LCG.geocoder({
+      defaultMarkGeocode: false,
+      geocoder: new (L.Control as any).Geocoder.Nominatim({
+        geocodingQueryParams: {
+          countrycodes: 'fr',  },
+      }),
+    });
+    const showSuggestions = (query: string, suggestionsElement: HTMLUListElement, inputElement: HTMLInputElement) => {
+      geocoder.options.geocoder!.geocode(query, (results) => {
+        suggestionsElement.innerHTML = '';
+        results.forEach(result => {
+          console.log("result: ",result);
+          const suggestionItem = document.createElement('li');
+          suggestionItem.classList.add('list-group-item');
+          suggestionItem.textContent = result.name;
+          suggestionItem.addEventListener('click', () => {
+            inputElement.value = result.name;
+            suggestionsElement.innerHTML = '';
+           
+          });
+          suggestionsElement.appendChild(suggestionItem);
+        
+      })}
+      )}
+
+    originInput.addEventListener('keyup', (event) => {
+      const query = (event.target as HTMLInputElement).value;
+      if (query.length > 2) {
+        console.log("origin input typing...");
+
+        showSuggestions(query, originSuggestions, originInput);
+      } else {
+        originSuggestions.innerHTML = '';
+      }
+    });
+
+    destinationInput.addEventListener('keyup', (event) => {
+   
+      const query = (event.target as HTMLInputElement).value;
+      if (query.length > 2) {
+        showSuggestions(query, destinationSuggestions, destinationInput);
+      } else {
+        destinationSuggestions.innerHTML = '';
+      }
+    });
+
   }
 
   updateDemande() {
+    this.isAdding  = true;
     const demandeId = this.route.snapshot.paramMap.get('id');
     this.demandeService.updateDemande(demandeId!, this.demande).subscribe(
       (response) => {
         console.log('Demande updated successfully:', response);
+        this.isAdding = false;
         Swal.fire({
           icon: 'success',
           title: 'Demande mise à jour avec succès !',
@@ -46,6 +103,7 @@ export class EditDemandeComponent {
       },
       (error) => {
         console.error('Error updating demande:', error);
+        this.isAdding = false;
       }
     );
   }

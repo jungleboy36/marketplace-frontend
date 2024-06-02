@@ -4,12 +4,14 @@ import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
-import { DatePipe } from '@angular/common';
+import { DatePipe, JsonPipe } from '@angular/common';
 import { ChatService } from '../services/chat.service';
 import * as $ from 'jquery';
 import * as L from 'leaflet';
 import 'leaflet-routing-machine';
 import * as LCG from 'leaflet-control-geocoder';
+
+
 
 @Component({
   selector: 'app-offer-list',
@@ -17,15 +19,17 @@ import * as LCG from 'leaflet-control-geocoder';
   styleUrls: ['./offer-list.component.html'],
 })
 export class OfferListComponent implements OnInit, AfterViewInit {
+  isAdding: boolean = false;
   map: any;
+  offerMap : any;
   itinerary: string = '';
   originPin: L.Marker | undefined;
   destinationPin: L.Marker | undefined;
   routeControl: L.Routing.Control | undefined;
   routeLayer: any;
-
-  
-  offers: any[] = [];
+  mapLoading : boolean = false;
+  allFieldsFilled: boolean = false;
+  public offers: any[] = [];
   filteredOffers: any[] = [];
   len!: number;
   errorMessage: string = '';
@@ -34,14 +38,16 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   filterOption: string = 'all';
   newOffer: any = {
     user_id: '',
-    picture: '',
     title: '',
     description: '',
     depart_date: '',
     arrival_date: '',
-    itinerary: '',
-    volume: '',
-    price: '',
+    origin:'',
+    destination :'',
+    originMap : '',
+    destinationMap : '',
+    route: null,
+    picture  : localStorage.getItem('profileImageUrl')
   };
 
   offerForm!: FormGroup;
@@ -58,6 +64,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
     price: '',
     user_id: '',
     username: '',
+    picture : '',
   };
   loading: boolean = true;
   public role: string | null = null;
@@ -71,11 +78,23 @@ export class OfferListComponent implements OnInit, AfterViewInit {
     private datePipe: DatePipe,
     private chatService: ChatService,
     private renderer: Renderer2,
+    
   ) {
     this.minDate = this.offerService.getMinDate();
+    this.offerForm = this.formBuilder.group({
+      title: ['', Validators.required],
+      description: ['', Validators.required],
+      depart_date: ['', Validators.required],
+      arrival_date: ['', Validators.required],
+      origin: ['', Validators.required],
+      destination: ['', Validators.required]
+      // Add other form controls here
+  });
   }
 
   ngOnInit(): void {
+    this.loadOffers();
+    this.initializeOfferMap();
     this.map = L.map('map').setView([48.8566, 2.3522], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
@@ -91,7 +110,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
       if (!this.originPin) {
         this.originPin = L.marker(e.latlng ,{draggable: true} ).addTo(this.map);
        this.reverseGeocode(this.originPin.getLatLng(),originInput);
-      
+       
       } else if (!this.destinationPin) {
         this.destinationPin = L.marker(e.latlng ,{draggable: true}).addTo(this.map);
         this.reverseGeocode(this.destinationPin.getLatLng(),destinationInput);
@@ -109,7 +128,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
       this.destinationPin!.on('dragend',()=>{
         this.reverseGeocode(this.destinationPin!.getLatLng(),destinationInput);
         this.updateRoute();
-      })
+      });
     });
     
     const geocoder = LCG.geocoder({
@@ -137,6 +156,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
      
               }
               this.originPin = L.marker(result.center,{draggable : true}).addTo(this.map);
+
               this.originPin.on('dragend', () => {
                 this.reverseGeocode(this.originPin!.getLatLng(), originInput);
                 this.updateRoute();
@@ -186,18 +206,8 @@ export class OfferListComponent implements OnInit, AfterViewInit {
 
 
    
-    this.loadOffers();
-    this.offerForm = this.formBuilder.group({
-      title: ['', Validators.required],
-      description: ['', Validators.required],
-      depart_date: ['', Validators.required],
-      arrival_date: ['', Validators.required],
-      itinerary: ['', Validators.required],
-      volume: ['', Validators.required],
-      price: ['', Validators.required],
-      user_id: '',
-    });
-  
+   
+
   }
 
   ngAfterViewInit(): void {
@@ -233,16 +243,23 @@ export class OfferListComponent implements OnInit, AfterViewInit {
         }).on('routingerror', function (e) {
           console.error('Routing error: ', e);
           alert('Routing error: ' + e.message);
+        }).on('routesfound', (e) => {
+          const routes = e.routes;
+          const route = routes[0]; // Assuming we take the first route
+          this.newOffer.route = JSON.stringify(route) ;
+          console.log("route: ", route);
+          // Save the route data
+         
         }).addTo(this.map);
   
         // Re-add the existing markers to the map
         this.originPin.addTo(this.map);
+
         this.destinationPin.addTo(this.map);
-  
         const bounds = new L.LatLngBounds(originLatLng, destinationLatLng);
         this.map.fitBounds(bounds, { padding: [20, 20] });
       } else {
-        alert('Invalid coordinates for routing');
+        alert("assurez-vous de placer les épingles à l'intérieur de la france");
       }
     }
   }
@@ -251,7 +268,14 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   isValidCoordinate(latlng: L.LatLng): boolean {
     const lat = latlng.lat;
     const lng = latlng.lng;
-    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    
+    // France's approximate geographical bounds
+    const minLat = 42.0;
+    const maxLat = 51.0;
+    const minLng = -5.0;
+    const maxLng = 8.0;
+    
+    return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
   }
 
   clickCancelButton() {
@@ -270,31 +294,35 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   }
   loadOffers() {
     const cachedOffers = localStorage.getItem('cachedOffers');
+  
     if (cachedOffers) {
       this.offers = JSON.parse(cachedOffers);
       this.filteredOffers = [...this.offers];
       this.loading = false;
-      if (this.filterOption == "mine") {
+      if (this.filterOption === "mine") {
         this.applyFilter();
       }
-    } else {
-      this.offerService.getOffers().subscribe(
-        (offers: any[]) => {
-          this.offers = offers.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
-          this.filteredOffers = [...this.offers];
-          localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
-          this.loading = false;
-          if (this.filterOption == "mine") {
-            this.applyFilter();
-          }
-        },
-        (error) => {
-          this.errorMessage = 'Error fetching offers: ' + error.message;
-          this.loading = false;
-        }
-      );
     }
+  
+    this.offerService.getOffers().subscribe(
+      (offers: any[]) => {
+        this.offers = offers.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+        this.filteredOffers = [...this.offers];
+        localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
+        this.offers = JSON.parse(localStorage.getItem('cachedOffers')!);
+        this.filteredOffers = [...this.offers];
+        this.loading = false;
+        if (this.filterOption === "mine") {
+          this.applyFilter();
+        }
+      },
+      (error) => {
+        this.errorMessage = 'Error fetching offers: ' + error.message;
+        this.loading = false;
+      }
+    );
   }
+  
 
   confirmDelete(id: string) {
     if (window.confirm('Are you sure you want to delete this offer?')) {
@@ -322,8 +350,43 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   addOffer() {
     if (this.offerForm.valid) {
       this.newOffer.user_id = this.authService.getUserId();
+      
+      this.isAdding = true; 
+      const departDate = new Date(this.offerForm.get('depart_date')!.value);
+      const arrivalDate = new Date(this.offerForm.get('arrival_date')!.value);
+  
+      if (departDate > arrivalDate) {
+        Swal.fire({
+          icon: 'error',
+          title: 'La date de départ doit être antérieure ou égale à la date d\'arrivée.',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        this.isAdding = false;
+        return;
+      }
+      if (this.originPin && this.destinationPin) {
+        this.newOffer.originMap = JSON.stringify(this.originPin.getLatLng());
+        this.newOffer.destinationMap = JSON.stringify(this.destinationPin.getLatLng());
+      } else {
+        // Handle case where origin or destination pins are not set
+        Swal.fire({
+          icon: 'error',
+          title: 'Veuillez indiquer le point de départ et la destination sur la carte.',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        this.isAdding = false;
+
+        return;
+      }
+      console.log("new offer : ",this.newOffer);
+      this.newOffer.depart_date = JSON.stringify(this.newOffer.depart_date);
+      this.newOffer.arrival_date = JSON.stringify(this.newOffer.arrival_date);
+
       this.offerService.addOffer(this.newOffer).subscribe(
         (response) => {
+          console.log("response from add offer : ",response);
           Swal.fire({
             icon: 'success',
             title: 'Offre ajouté !',
@@ -333,7 +396,9 @@ export class OfferListComponent implements OnInit, AfterViewInit {
           this.offerForm.reset();
           this.clickCancelButton();
 
-          this.offers.push(response);
+          response.picture = localStorage.getItem('profileImageUrl');
+          response.username = this.authService.getDisplayName();
+          this.offers.unshift(response);
           this.filteredOffers = [...this.offers];
           localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
         },
@@ -341,26 +406,82 @@ export class OfferListComponent implements OnInit, AfterViewInit {
           this.errorMessage = error;
           Swal.fire({
             icon: 'error',
-            title: this.errorMessage,
+            title: "Erreur lors de l'ajout du l'offre",
             showConfirmButton: false,
             timer: 800,
           });
+          this.isAdding = false; 
+
         }
       );
     }
   }
 
   openInfoModal(offerId: string) {
+    this.mapLoading = true;
+    setTimeout(() => {
+      this.offerMap.invalidateSize();
+    }, 500);
+  
     this.offerService.getOfferById(offerId).subscribe(
       (offerDetails: any) => {
         this.offerDetails = offerDetails;
+        const originLatLng = JSON.parse(offerDetails.originMap);
+        const destinationLatLng = JSON.parse(offerDetails.destinationMap);
+        
+        // Remove existing layers except tile layer
+        this.offerMap.eachLayer((layer: any) => {
+          if (!(layer instanceof L.TileLayer)) {
+            this.offerMap.removeLayer(layer);
+          }
+
+        });
+        L.marker(originLatLng, {draggable : false}).addTo(this.offerMap);
+        L.marker(destinationLatLng, {draggable : false}).addTo(this.offerMap);
+        const bounds = new L.LatLngBounds(originLatLng, destinationLatLng);
+        this.offerMap.fitBounds(bounds, { padding: [5, 5] });
      
+        // Check and parse route coordinates
+        const route = this.offerDetails.route;
+        if (!route) {
+          console.error('Route data is missing in offer details');
+          return;
+        }
+  
+        let coordinates;
+        try {
+          coordinates = JSON.parse(route).coordinates.map((coord: any) => L.latLng(coord.lat, coord.lng));
+        } catch (error) {
+          console.error('Error parsing route coordinates:', error);
+          return;
+        }
+  
+        console.log("offer details route:", route);
+        console.log("offer details coordinates:", coordinates);
+ 
+        L.polyline(coordinates, { color: 'blue', weight: 4 }).addTo(this.offerMap);
+        this.mapLoading = false;
       },
       (error) => {
         console.error('Error fetching offer details:', error);
       }
     );
   }
+  
+
+
+  initializeOfferMap() {
+    // Initialize map with a default location and zoom level
+    
+    this.offerMap = L.map('modalMap').setView([48.8566, 2.3522], 7);
+    // Add tile layer
+   
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(this.offerMap);
+    
+  }
+
 
   public isCompany() : boolean {
     return  this.authService.getRole() == 'company';
@@ -371,13 +492,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   }
 
   // Method to filter offers based on search query
-  searchOffers() {
-    this.filteredOffers = this.offers.filter(offer =>
-      offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.description.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-      offer.itinerary.toLowerCase().includes(this.searchQuery.toLowerCase()) 
-    );
-  }
+
 
   applyFilter() {
     if (this.filterOption === 'mine' ) {
@@ -390,8 +505,10 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   
     // Apply search query filter on filteredOffers
     this.filteredOffers = this.filteredOffers.filter(offer =>
-      offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+      offer.depart_date.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      offer.origin.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      offer.destination.toLowerCase().includes(this.searchQuery.toLowerCase())
+  
     );
   }
 
@@ -455,19 +572,12 @@ this.routeLayer = L.layerGroup().addTo(this.map);
 this.map.on('click', (e: any) => {
 
   if (!this.originPin) {
-    this.originPin = L.marker(e.latlng).addTo(this.routeLayer);
+    this.originPin = L.marker(e.latlng,{draggable : true}).addTo(this.routeLayer);
     this.reverseGeocode(this.originPin.getLatLng(),document.getElementById('origin') as HTMLInputElement);
-    this.originPin.on('dragend', () => {
-      const latlng = this.originPin!.getLatLng();
-      this.reverseGeocode(latlng, originInput);
-    });
+
   } else if (!this.destinationPin) {
-    this.destinationPin = L.marker(e.latlng).addTo(this.routeLayer);
+    this.destinationPin = L.marker(e.latlng, {draggable: true}).addTo(this.routeLayer);
     this.reverseGeocode(this.destinationPin.getLatLng(),document.getElementById('destination') as HTMLInputElement);
-    this.destinationPin.on('dragend', () => {
-      const latlng = this.destinationPin!.getLatLng();
-      this.reverseGeocode(latlng, destinationInput);
-    });
   }
   // Check if both pins are placed
   if (this.originPin && this.destinationPin && (this.nb ==0)) {
@@ -475,7 +585,17 @@ this.map.on('click', (e: any) => {
     this.updateRoute(); 
    
   }
+  
+  this.originPin!.on('dragend',(e:any)=>{
+    this.reverseGeocode(this.originPin!.getLatLng(),originInput);
+    this.updateRoute();
+  });
+  this.destinationPin!.on('dragend',()=>{
+    this.reverseGeocode(this.destinationPin!.getLatLng(),destinationInput);
+    this.updateRoute();
+  });
 });
+
 }
 reverseGeocode(latlng: L.LatLng, inputElement: HTMLInputElement) {
   const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latlng.lat}&lon=${latlng.lng}`;
@@ -494,6 +614,13 @@ reverseGeocode(latlng: L.LatLng, inputElement: HTMLInputElement) {
         //inputElement.value = address;
         geocoder.options.geocoder!.geocode(address, (results) => {
           inputElement.value = results[0].name;
+          if (inputElement.id === 'origin') {
+            this.offerForm.controls['origin'].setValue(results[0].name);
+            this.offerForm.controls['origin'].updateValueAndValidity();
+          } else if (inputElement.id === 'destination') {
+            this.offerForm.controls['destination'].setValue(results[0].name);
+            this.offerForm.controls['destination'].updateValueAndValidity();
+          }
         });
 
           
@@ -505,6 +632,17 @@ reverseGeocode(latlng: L.LatLng, inputElement: HTMLInputElement) {
       console.error('Error fetching address:', error);
       inputElement.value = 'Error fetching address';
     });
+}
+
+areAllFieldsFilled(): boolean {
+  return (
+    this.offerForm.get('title')!.value &&
+    this.offerForm.get('description')!.value &&
+    this.offerForm.get('depart_date')!.value &&
+    this.offerForm.get('arrival_date')!.value &&
+    this.offerForm.get('origin')!.value &&
+    this.offerForm.get('destination')!.value
+  );
 }
 
 }

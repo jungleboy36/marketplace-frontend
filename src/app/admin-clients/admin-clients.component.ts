@@ -19,17 +19,29 @@ export class AdminClientsComponent implements OnInit {
 
   // Load the list of clients from the AdminService
   loadClients(): void {
-    this.adminService.getClients().subscribe({
-      next: (response) => {
-        this.clients = response;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error loading clients:', err);
-        this.loading = false;
-      }
-    });
+    const cachedClients = localStorage.getItem('clients');
+    
+    if (cachedClients) {
+      // If clients are found in localStorage, parse and set them
+      this.clients = JSON.parse(cachedClients);
+      this.loading = false;
+    } else {
+      // If not, make the API call
+      this.adminService.getClients().subscribe({
+        next: (response) => {
+          this.clients = response;
+          // Store the response in localStorage
+          localStorage.setItem('clients', JSON.stringify(this.clients));
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error loading clients:', err);
+          this.loading = false;
+        }
+      });
+    }
   }
+  
 
   // Update the status of a client
   updateClientStatus(client: any, event: Event): void {
@@ -63,4 +75,25 @@ export class AdminClientsComponent implements OnInit {
   // Download a file associated with a client
 
 }
+isNew(dateInscription: string): boolean {
+  const currentDate = new Date();
+  const tomorrow = new Date(currentDate);
+  tomorrow.setDate(currentDate.getDate() + 1);
+
+  // Parse the dateInscription string into a Date object
+  const parsedDate = new Date(dateInscription);
+
+  // Normalize the dates to remove time component for comparison
+  const normalizeDate = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+  const normalizedDate = normalizeDate(parsedDate);
+  const normalizedCurrentDate = normalizeDate(currentDate);
+  const normalizedTomorrow = normalizeDate(tomorrow);
+
+  return normalizedDate.getTime() === normalizedCurrentDate.getTime() || 
+         normalizedDate.getTime() === normalizedTomorrow.getTime();
+}
+
+
+
 }

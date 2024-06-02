@@ -43,7 +43,7 @@
             <tr *ngFor="let client of clients">
                 
                 <td>{{ client.name }}</td>
-                <td>{{ client.email }}</td>
+                <td>{{ client.email }}<span class="badge badge-info" style="margin-left: 5px;" *ngIf="isNew(client.dateInscription )"> Nouveau</span></td>
                 <td>{{ client.dateInscription| date: 'dd MMM yyyy'  }}</td>
                 <td><i style="color: red;" class="bx bx-x-circle" *ngIf="!client.enabled" ></i>
                     <i style="color: green;" class="bx bx-check-circle" *ngIf="client.enabled" ></i>

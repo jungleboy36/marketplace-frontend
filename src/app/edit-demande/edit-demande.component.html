@@ -5,10 +5,10 @@
   <div class="d-flex justify-content-center">
     <div class="card" style="width: 700px;">
       <div class="card-body">
-  <form #offerForm="ngForm" (ngSubmit)="updateDemande()" novalidate *ngIf="demande">
+  <form #offerForm="ngForm" (ngSubmit)="updateDemande()" novalidate [hidden]="!demande">
     <div class="form-group">
         <label>Titre</label>
-        <input type="text" class="form-control" [(ngModel)]="demande.title" name="title" required>
+        <input type="text" class="form-control" [(ngModel)]="demande.title" name="title" required >
     </div>
     <div class="form-group">
         <label>Description</label>
@@ -16,25 +16,27 @@
     </div>
     <div class="form-group">
       <label>Date déménagement</label>
-      <input type="datetime-local" class="form-control"  [(ngModel)]="demande.date" [attr.min]="minDate" name="date" required>
+      <input type="date" class="form-control"  [(ngModel)]="demande.date" [attr.min]="minDate" name="date" required>
   </div>
   
   <div class="form-group">
     <label>Départ</label>
-    <input type="text" class="form-control" [(ngModel)]="demande.depart" name="depart" required>
+    <input type="text" class="form-control" [(ngModel)]="demande.depart" id="origin" name="depart" required>
+    <ul id="origin-suggestions" class="list-group" ></ul>
   </div>
   <div class="form-group">
     <label>Destination</label>
-    <input type="text" class="form-control" [(ngModel)]="demande.destination" name="destination" required>
+    <input type="text" class="form-control" [(ngModel)]="demande.destination" id="destination" name="destination" required>
+    <ul id="destination-suggestions" class="list-group" ></ul>
   </div>
   <div class="form-group">
     <label>Budget</label>
     <input type="number" class="form-control"  [(ngModel)]="demande.price" name="price" required>
   </div>
     <!-- Add more fields as needed -->
-    <button type="button" class="btn btn-secondary" style="margin-right:20px" (click)="goBack()">Annuler</button>
+    <button type="button" class="btn btn-secondary" style="margin-left:430px" (click)="goBack()">Annuler</button>
     
-    <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid">Enregistrer</button>
+    <button type="submit" class="btn btn-primary" style="margin-left: 10px;" [disabled]="!offerForm.valid || isAdding">Enregistrer</button>
   </form>
   </div>
   </div>

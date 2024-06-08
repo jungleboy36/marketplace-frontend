@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef } from '@angular/core';
 import { HomeService } from '../services/home.service';
 import { Renderer2, Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
@@ -11,13 +11,14 @@ export class HomeComponent {
 documentCount: any;
   loading: boolean=true;
   
-constructor(private homeService: HomeService, private renderer2: Renderer2,
+constructor(private homeService: HomeService, private renderer2: Renderer2, private el: ElementRef,
   @Inject(DOCUMENT) private _document:Document){}
 
 ngOnInit(): void {
   // Initialize loading variable
   this.loading = true;
   this.appendChatbotScript();
+  this.loadScripts();
   // Introduce a slight delay before fetching data
   setTimeout(() => {
     // Fetch document count
@@ -66,5 +67,18 @@ appendChatbotScript() {
   this.renderer2.appendChild(this._document.head, ss);
 }
 
+loadScripts() {
+  this.addScript('https://code.jquery.com/jquery-3.6.0.min.js');
+  this.addScript('https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js');
+  this.addScript('assets/homepage/vendor/bootstrap/js/bootstrap.min.js');
+}
 
+addScript(src: string) {
+  const script = this.renderer2.createElement('script');
+  script.src = src;
+  script.type = 'text/javascript';
+  script.async = true;
+  script.defer = true;
+  this.renderer2.appendChild(this.el.nativeElement, script);
+}
 }

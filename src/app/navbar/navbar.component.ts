@@ -20,11 +20,7 @@ export class NavbarComponent implements OnInit {
   constructor(public authService: AuthService,private profileService: ProfileService,private location: Location) {
     this.email = localStorage.getItem('email');
     this.display_name = localStorage.getItem('display_name');
-    const storedProfileImageUrl = localStorage.getItem('profileImageUrl');
-    if (storedProfileImageUrl) {
-      // Use the stored profile image URL
-      this.profileImageUrl = storedProfileImageUrl;
-    }    
+     
  
     const currentUrl = this.location.path();
     const pusher = new Pusher('1c26d2cd463b15a19666', {
@@ -42,18 +38,19 @@ export class NavbarComponent implements OnInit {
    }
 
   ngOnInit(): void {
+
     // Retrieve user info from local storage
     this.authService.infoUser = this.authService.getInfoFromToken();
     console.log('get info from token : ', this.authService.getInfoFromToken());
   
     // Check if profile image URL is available in local storage
     const storedProfileImageUrl = localStorage.getItem('profileImageUrl');
-    if (storedProfileImageUrl) {
+  
       // Use the stored profile image URL
       this.profileImageUrl = storedProfileImageUrl;
       console.log("got image from localstorage")
     
-    }
+    
   
     this.profileService.profileUpdated.subscribe(() => {
       // Reload data or take necessary actions

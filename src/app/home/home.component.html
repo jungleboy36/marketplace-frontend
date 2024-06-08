@@ -17,7 +17,40 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <style>
+    /* Ensure the navbar is on top of other content */
+    .navbar {
+      z-index: 1030;
+    }
 
+    /* Custom styles for the hero section */
+    #hero {
+      background-color: rgb(47, 48, 144);
+      padding: 100px 0;
+    }
+
+    /* Adjust the z-index of the hero section */
+    .hero {
+      z-index: 1;
+      position: relative;
+    }
+
+    /* Adjust the z-index of the main content */
+    main {
+      position: relative;
+      z-index: 1;
+    }
+    @media (max-width: 992px) {
+      .navbar-collapse .btn {
+        margin: 5px 0;
+        margin-left: 10px;
+      }
+      .navbar-collapse{
+        background-color: rgb(39, 39, 47);
+      
+      }
+    }
+  </style>
 
   <!-- =======================================================
   * Template Name: Logis
@@ -27,31 +60,26 @@
   * License: https://bootstrapmade.com/license/
   ======================================================== -->
 </head>
-
+<nav class="navbar navbar-expand-lg navbar-light bg-dark" style="height: 60px; background-color: darkblue;">
+  <a class="navbar-brand" href="#"><h2 style="color:white;">Assistline</h2></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarText" style="background-color: dark;">
+    <ul class="navbar-nav ml-auto" style="margin-right: 20px;">
+      <li class="nav-item">
+        <a href="/register"><button type="button" class="btn btn-light" style="margin-right: 10px;">Créer un compte</button></a>
+      </li>
+      <li class="nav-item">
+        <a href="login"><button type="button" class="btn btn-light">Se connecter</button></a>
+      </li>
+    </ul>
+  </div>
+</nav>
 <body>
 
   <!-- ======= Header ======= -->
-  <header style="background-color: rgb(39, 39, 80); height:70px" id="header" class="header d-flex align-items-center fixed-top">
-    <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
-
-      <a href="index.html" class="logo d-flex align-items-center">
-        <!-- Uncomment the line below if you also wish to use an image logo -->
-        <!-- <img src="assets/img/logo.png" alt=""> -->
-        <h1>Assistline</h1>
-      </a>
-
-      <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
-      <i class="mobile-nav-toggle mobile-nav-hide d-none bi bi-x"></i>
-      <nav id="navbar" class="navbar" style="margin-right: -50px;">
-        <ul>
-          <li><a class="get-a-quote" style="background-color: rgb(0, 118, 168)" href="/register">Inscrivez-vous</a></li>
-
-          <li><a class="get-a-quote" style="background-color: red" href="/login"> Se connecter</a></li>
-        </ul>
-      </nav><!-- .navbar -->
-
-    </div>
-  </header><!-- End Header -->
+  <!-- End Header -->
   <!-- End Header -->
 
   <!-- ======= Hero Section ======= -->

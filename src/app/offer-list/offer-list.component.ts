@@ -11,7 +11,11 @@ import * as L from 'leaflet';
 import 'leaflet-routing-machine';
 import * as LCG from 'leaflet-control-geocoder';
 
-
+class NoMarkerPlan extends L.Routing.Plan {
+  createMarker(i: number, waypoint: L.Routing.Waypoint, n: number): L.Marker | null {
+      return null; // Prevent marker creation
+  }
+}
 
 @Component({
   selector: 'app-offer-list',
@@ -70,6 +74,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   public role: string | null = null;
   minDate: string;
   nb : number = 0;
+  customIcon:any;
   constructor(
     private offerService: OfferService,
     private router: Router,
@@ -100,6 +105,14 @@ export class OfferListComponent implements OnInit, AfterViewInit {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(this.map);
 
+
+    this.customIcon = L.icon({
+      iconUrl: 'assets/img/marker-icon.png', // Path to your custom icon image
+      iconSize: [25, 41], // Size of the icon [width, height]
+      iconAnchor: [12, 41], // Anchor point of the icon [x, y]
+      popupAnchor: [0, -41] // Anchor point of the popup relative to the icon [x, y]
+  });
+  
     this.routeLayer = L.layerGroup().addTo(this.map);
     const originInput = document.getElementById('origin') as HTMLInputElement;
     const destinationInput = document.getElementById('destination') as HTMLInputElement;
@@ -108,11 +121,11 @@ export class OfferListComponent implements OnInit, AfterViewInit {
     this.map.on('click', (e: any) => {
       console.log("map clicked !");
       if (!this.originPin) {
-        this.originPin = L.marker(e.latlng ,{draggable: true} ).addTo(this.map);
+        this.originPin = L.marker(e.latlng ,{draggable: true,icon:this.customIcon} ).addTo(this.map);
        this.reverseGeocode(this.originPin.getLatLng(),originInput);
        
       } else if (!this.destinationPin) {
-        this.destinationPin = L.marker(e.latlng ,{draggable: true}).addTo(this.map);
+        this.destinationPin = L.marker(e.latlng ,{draggable: true,icon:this.customIcon}).addTo(this.map);
         this.reverseGeocode(this.destinationPin.getLatLng(),destinationInput);
       }
       // Check if both pins are placed
@@ -155,7 +168,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
                 this.map.removeLayer(this.originPin);
      
               }
-              this.originPin = L.marker(result.center,{draggable : true}).addTo(this.map);
+              this.originPin = L.marker(result.center,{draggable : true,icon:this.customIcon}).addTo(this.map);
 
               this.originPin.on('dragend', () => {
                 this.reverseGeocode(this.originPin!.getLatLng(), originInput);
@@ -169,7 +182,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
                 this.map.removeLayer(this.destinationPin);
 
               }
-              this.destinationPin = L.marker(result.center ,{draggable : true}).addTo(this.map);
+              this.destinationPin = L.marker(result.center ,{draggable : true,icon:this.customIcon}).addTo(this.map);
               this.destinationPin.on('dragend', () => {
                 this.reverseGeocode(this.destinationPin!.getLatLng(), destinationInput);
                 this.updateRoute();
@@ -230,16 +243,23 @@ export class OfferListComponent implements OnInit, AfterViewInit {
         // Remove the existing markers from the map to avoid duplication
         this.map.removeLayer(this.originPin);
         this.map.removeLayer(this.destinationPin);
-  
+        const noMarkerPlan = new NoMarkerPlan([originLatLng, destinationLatLng], {
+          createMarker: () => false // This prevents waypoint markers from being displayed
+      });
+
+
         this.routeControl = L.Routing.control({
           waypoints: [
             originLatLng,
             destinationLatLng,
           ],
+          plan: noMarkerPlan,
           routeWhileDragging: true,
+          
           router: new L.Routing.OSRMv1({
             serviceUrl: 'https://router.project-osrm.org/route/v1'
-          })
+          }),
+         
         }).on('routingerror', function (e) {
           console.error('Routing error: ', e);
           alert('Routing error: ' + e.message);
@@ -436,8 +456,8 @@ export class OfferListComponent implements OnInit, AfterViewInit {
           }
 
         });
-        L.marker(originLatLng, {draggable : false}).addTo(this.offerMap);
-        L.marker(destinationLatLng, {draggable : false}).addTo(this.offerMap);
+        L.marker(originLatLng, {draggable : false,icon:this.customIcon}).addTo(this.offerMap);
+        L.marker(destinationLatLng, {draggable : false,icon:this.customIcon}).addTo(this.offerMap);
         const bounds = new L.LatLngBounds(originLatLng, destinationLatLng);
         this.offerMap.fitBounds(bounds, { padding: [5, 5] });
      
@@ -572,11 +592,11 @@ this.routeLayer = L.layerGroup().addTo(this.map);
 this.map.on('click', (e: any) => {
 
   if (!this.originPin) {
-    this.originPin = L.marker(e.latlng,{draggable : true}).addTo(this.routeLayer);
+    this.originPin = L.marker(e.latlng,{draggable : true,icon:this.customIcon}).addTo(this.routeLayer);
     this.reverseGeocode(this.originPin.getLatLng(),document.getElementById('origin') as HTMLInputElement);
 
   } else if (!this.destinationPin) {
-    this.destinationPin = L.marker(e.latlng, {draggable: true}).addTo(this.routeLayer);
+    this.destinationPin = L.marker(e.latlng, {draggable: true,icon:this.customIcon}).addTo(this.routeLayer);
     this.reverseGeocode(this.destinationPin.getLatLng(),document.getElementById('destination') as HTMLInputElement);
   }
   // Check if both pins are placed

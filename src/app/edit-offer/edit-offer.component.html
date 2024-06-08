@@ -10,7 +10,12 @@
     
     <!-- Leaflet JavaScript -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    
+    <style>
+      .leaflet-control-container .leaflet-routing-container-hide .leaflet-bottom .leaflet-right .leaflet-routing-container{
+          display: none;
+      }
+      
+  </style>
 </head>
  <app-sidebar></app-sidebar>
 <div class="main-content d-flex flex-column">
@@ -64,7 +69,7 @@
           <div style="margin-left: 450px;">
           <button type="button" class="btn btn-secondary" style="margin-right:10px" (click)="goBack()">Annuler</button>
           
-          <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid"> <div class="spinner-border text-light" style="width:15px;height:15px; margin-right:5px" role="status" *ngIf="isAdding" >
+          <button type="submit" class="btn btn-primary" [disabled]="!offerForm.valid || isAdding"> <div class="spinner-border text-light" style="width:15px;height:15px; margin-right:5px" role="status" *ngIf="isAdding" >
             <span class="sr-only">Loading...</span>
         </div>Modifier</button>
         </div>

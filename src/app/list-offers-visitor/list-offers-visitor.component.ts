@@ -94,10 +94,10 @@ export class ListOffersVisitorComponent implements OnInit {
 
   ngOnInit(): void {
     this.customIcon = L.icon({
-      iconUrl: './assets/img/marker-icon.png', // Path to your custom icon image
-      iconSize: [38, 38], // Size of the icon [width, height]
-      iconAnchor: [22, 22], // Anchor point of the icon [x, y]
-      popupAnchor: [-3, -76] // Anchor point of the popup relative to the icon [x, y]
+      iconUrl: 'assets/img/marker-icon.png', // Path to your custom icon image
+      iconSize: [25, 41], // Size of the icon [width, height]
+      iconAnchor: [12, 41], // Anchor point of the icon [x, y]
+      popupAnchor: [0, -41] // Anchor point of the popup relative to the icon [x, y]
   });
     this.loadOffers();
     this.initializeOfferMap();
@@ -170,8 +170,8 @@ export class ListOffersVisitorComponent implements OnInit {
           }
 
         });
-        L.marker(originLatLng, {draggable : false,icon: this.customIcon }).addTo(this.offerMap);
-        L.marker(destinationLatLng, {draggable : false}).addTo(this.offerMap);
+        L.marker(originLatLng, {draggable : false, icon: this.customIcon }).addTo(this.offerMap);
+        L.marker(destinationLatLng, {draggable : false , icon: this.customIcon}).addTo(this.offerMap);
         const bounds = new L.LatLngBounds(originLatLng, destinationLatLng);
         this.offerMap.fitBounds(bounds, { padding: [5, 5] });
      

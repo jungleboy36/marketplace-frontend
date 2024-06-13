@@ -296,5 +296,9 @@ import { environment } from 'src/environments/environment';
     });
   }
   
+  resetPassword(email : string): Observable<any[]>{
+    return this.http.post<any>(`${this.apiUrl}reset-password/`, {email:email});
+
+  }
 
   }

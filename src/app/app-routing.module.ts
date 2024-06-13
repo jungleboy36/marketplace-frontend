@@ -21,6 +21,7 @@ import { ChatComponent } from './chat/chat.component';
 import { PaymentComponent } from './payment/payment.component';
 import { ListOffersVisitorComponent } from './list-offers-visitor/list-offers-visitor.component';
 import { AvisComponent } from './avis/avis.component';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
 const routes: Routes = [
 
 {path:'offers',
@@ -41,6 +42,7 @@ children :[
   {path:'login',component:LoginComponent},
   {path:'payment',component:PaymentComponent},
   {path:'verify-email',component:VerifyEmailComponent},
+  {path:'reset-password',component:ResetPasswordComponent},
   {path:'visitor-offers',component:ListOffersVisitorComponent},
   {
     path:'admin',

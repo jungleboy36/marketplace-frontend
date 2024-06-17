@@ -19,6 +19,8 @@ export class ProfileComponent implements OnInit {
   maxImageSizeKB = 850; // Maximum allowed Base64 image size in KB
   loading: boolean = false;
   userProfileLoading : boolean = false;
+  avis : boolean = false;
+
   feedbacks : any[] =[];
   constructor(
     private profileService: ProfileService,
@@ -39,6 +41,7 @@ export class ProfileComponent implements OnInit {
     this.profileService.getUserProfile(this.uid!).subscribe(
       data => {
         this.userProfile = data;
+        this.avis = this.userProfile.role == 'company';
         // Populate the form with user data
         this.profileForm.patchValue(this.userProfile);
       }
@@ -186,6 +189,7 @@ export class ProfileComponent implements OnInit {
       data => {
         this.userProfile = data;
         // Populate the form with the updated user data
+        
         this.profileForm.patchValue(this.userProfile);
         localStorage.removeItem('profileImageUrl');
         localStorage.setItem('profileImageUrl',data.image);

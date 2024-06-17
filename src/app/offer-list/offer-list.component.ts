@@ -10,6 +10,8 @@ import * as $ from 'jquery';
 import * as L from 'leaflet';
 import 'leaflet-routing-machine';
 import * as LCG from 'leaflet-control-geocoder';
+import * as turf from '@turf/turf';
+import Pusher from 'pusher-js';
 
 class NoMarkerPlan extends L.Routing.Plan {
   createMarker(i: number, waypoint: L.Routing.Waypoint, n: number): L.Marker | null {
@@ -23,8 +25,14 @@ class NoMarkerPlan extends L.Routing.Plan {
   styleUrls: ['./offer-list.component.html'],
 })
 export class OfferListComponent implements OnInit, AfterViewInit {
+  searchedOffers:any[] = [];
   isAdding: boolean = false;
+  departSearch : string ='';
+  destinationSearch : string ='';
+  filterLoading : boolean= false;
   map: any;
+  filterButton : boolean = false;
+  selectedDateRange: any ;
   offerMap : any;
   itinerary: string = '';
   originPin: L.Marker | undefined;
@@ -57,6 +65,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   offerForm!: FormGroup;
   @ViewChild('cancelButton') cancelButton: ElementRef | undefined;
   @ViewChild('addOfferModal') addOfferModalButton: ElementRef | undefined;
+  @ViewChild('filterClose') filterCloseButton: ElementRef | undefined;
 
   offerDetails: any = {
     title: '',
@@ -75,6 +84,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   minDate: string;
   nb : number = 0;
   customIcon:any;
+  offersChannel: any;
   constructor(
     private offerService: OfferService,
     private router: Router,
@@ -104,8 +114,15 @@ export class OfferListComponent implements OnInit, AfterViewInit {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(this.map);
-
-
+    const pusher = new Pusher('1c26d2cd463b15a19666', {
+      cluster: 'eu',
+    });
+    this.offersChannel = pusher.subscribe('offers');
+    this.offersChannel.bind('update', (data:any) => {
+      setTimeout(() => {
+        this.loadOffers();
+      }, 3000); 
+    });
     this.customIcon = L.icon({
       iconUrl: 'assets/img/marker-icon.png', // Path to your custom icon image
       iconSize: [25, 41], // Size of the icon [width, height]
@@ -118,6 +135,12 @@ export class OfferListComponent implements OnInit, AfterViewInit {
     const destinationInput = document.getElementById('destination') as HTMLInputElement;
     const originSuggestions = document.getElementById('origin-suggestions') as HTMLUListElement;
     const destinationSuggestions = document.getElementById('destination-suggestions') as HTMLUListElement;
+    const destinationSearch = document.getElementById('destinationSearch') as HTMLInputElement;
+    const departSearch = document.getElementById('departSearch') as HTMLInputElement;
+    const destinationSearchSuggestions = document.getElementById('destinationSearch-suggestions') as HTMLUListElement;
+    const departSearchSuggestions = document.getElementById('departSearch-suggestions') as HTMLUListElement;
+
+
     this.map.on('click', (e: any) => {
       console.log("map clicked !");
       if (!this.originPin) {
@@ -219,7 +242,27 @@ export class OfferListComponent implements OnInit, AfterViewInit {
 
 
    
+    destinationSearch.addEventListener('keyup', (event) => {
    
+      const query = (event.target as HTMLInputElement).value;
+      if (query.length > 2) {
+        showSuggestions(query, destinationSearchSuggestions, destinationSearch);
+      } else {
+        destinationSearchSuggestions.innerHTML = '';
+      }
+    });
+
+   
+    departSearch.addEventListener('keyup', (event) => {
+   
+      const query = (event.target as HTMLInputElement).value;
+      if (query.length > 2) {
+        showSuggestions(query, departSearchSuggestions, departSearch);
+      } else {
+        departSearchSuggestions.innerHTML = '';
+      }
+    });
+
 
   }
 
@@ -321,22 +364,22 @@ export class OfferListComponent implements OnInit, AfterViewInit {
       this.offers = JSON.parse(cachedOffers);
       this.filteredOffers = [...this.offers];
       this.loading = false;
-      if (this.filterOption === "mine") {
-        this.applyFilter();
-      }
+  
     }
   
     this.offerService.getOffers().subscribe(
       (offers: any[]) => {
         this.offers = offers.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
         this.filteredOffers = [...this.offers];
+        this.filteredOffers.forEach(offer=>{
+          offer.depart_date = JSON.parse(offer.depart_date);
+          offer.arrival_date = JSON.parse(offer.arrival_date);
+        });
         localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
         this.offers = JSON.parse(localStorage.getItem('cachedOffers')!);
         this.filteredOffers = [...this.offers];
         this.loading = false;
-        if (this.filterOption === "mine") {
-          this.applyFilter();
-        }
+      
       },
       (error) => {
         this.errorMessage = 'Error fetching offers: ' + error.message;
@@ -417,7 +460,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
           });
           this.offerForm.reset();
           this.clickCancelButton();
-
+          this.isAdding = false; 
           response.picture = localStorage.getItem('profileImageUrl');
           response.username = this.authService.getDisplayName();
           this.offers.unshift(response);
@@ -517,21 +560,19 @@ export class OfferListComponent implements OnInit, AfterViewInit {
 
 
   applyFilter() {
-    if (this.filterOption === 'mine' ) {
-      // Filter offers to show only the user's offers
-      this.filteredOffers = this.offers.filter(offer => offer.user_id === this.authService.getUserId());
-    } else {
-      // Show all offers
-      this.filteredOffers = this.offers;
+    console.log('apply filter triggered!!');
+    if (this.searchQuery === '') {
+      this.filteredOffers = this.searchedOffers;
     }
-  
+    else{
     // Apply search query filter on filteredOffers
-    this.filteredOffers = this.filteredOffers.filter(offer =>
+    this.filteredOffers = this.searchedOffers.filter(offer =>
       offer.depart_date.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.origin.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.destination.toLowerCase().includes(this.searchQuery.toLowerCase())
+      offer.arrival_date.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
   
     );
+  }
   }
 
   refresh() {
@@ -541,6 +582,10 @@ export class OfferListComponent implements OnInit, AfterViewInit {
       (offers: any[]) => {
         this.offers = offers.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
         this.filteredOffers = [...this.offers];
+        this.filteredOffers.forEach(offer=>{
+          offer.depart_date = JSON.parse(offer.depart_date);
+          offer.arrival_date = JSON.parse(offer.arrival_date);
+        });
         localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
         this.loading = false;
         if (this.filterOption == "mine") {
@@ -667,4 +712,98 @@ areAllFieldsFilled(): boolean {
   );
 }
 
+applySmartSearch(departure: string, destination: string, maxDistance: number = 20): void {
+  this.filterLoading= true;
+
+  if (this.filterOption === 'mine' ) {
+    // Filter offers to show only the user's offers
+    this.filteredOffers = this.offers.filter(offer => offer.user_id === this.authService.getUserId());
+  } else {
+    // Show all offers
+    this.filteredOffers = this.offers;
+  }
+
+  // Apply search query filter on filteredOffers
+  
+ if(this.departSearch ==='' && this.destinationSearch ===''){
+  this.searchedOffers = this.filteredOffers;
+  this.filterLoading = false;
+  if(this.filterCloseButton){
+    this.filterCloseButton.nativeElement.click();
+  }
+ }
+  const geocoder = (L.Control as any).Geocoder.nominatim();
+  // Geocode the departure address
+  geocoder.geocode(departure, (departResults: any) => {
+    if (departResults.length === 0) {
+      console.error('Departure address not found');
+      return;
+    }
+    const departLatLng = new L.LatLng(departResults[0].center.lat, departResults[0].center.lng);
+
+    // Geocode the destination address
+    geocoder.geocode(destination, (destinationResults: any) => {
+      if (destinationResults.length === 0) {
+        console.error('Destination address not found');
+        return;
+      }
+      const destinationLatLng = new L.LatLng(destinationResults[0].center.lat, destinationResults[0].center.lng);
+
+      this.filteredOffers = this.filteredOffers.filter(offer => {
+        if (offer.route) {
+          const route = JSON.parse(offer.route);
+          const routeCoords = route.coordinates.map((coord: any) => [coord.lng, coord.lat]);
+
+          // Convert route coordinates to a LineString for turf.js
+          const line = turf.lineString(routeCoords);
+
+          // Convert depart and destination points to turf points
+          const departPoint = turf.point([departLatLng.lng, departLatLng.lat]);
+          const destinationPoint = turf.point([destinationLatLng.lng, destinationLatLng.lat]);
+
+          // Check if depart and destination points are within maxDistance of the route
+          const departNearRoute = turf.nearestPointOnLine(line, departPoint, { units: 'kilometers' }).properties.dist <= maxDistance;
+          const destinationNearRoute = turf.nearestPointOnLine(line, destinationPoint, { units: 'kilometers' }).properties.dist <= maxDistance;
+
+          if (departNearRoute && destinationNearRoute) {
+            // Ensure depart point comes before destination point along the route
+            const departIndex = routeCoords.findIndex(([lng, lat]: [number, number]) => {
+              return turf.distance(turf.point([lng, lat]), departPoint, { units: 'kilometers' }) <= maxDistance;
+            });
+
+            const destinationIndex = routeCoords.findIndex(([lng, lat]: [number, number]) => {
+              return turf.distance(turf.point([lng, lat]), destinationPoint, { units: 'kilometers' }) <= maxDistance;
+            });
+
+            return departIndex !== -1 && destinationIndex !== -1 && departIndex < destinationIndex;
+          }
+
+          return false;
+        }
+
+        return false;
+      });
+      this.searchedOffers = this.filteredOffers;
+
+    });
+    this.filterLoading = false;
+    if(this.filterCloseButton){
+      this.filterCloseButton.nativeElement.click();
+    }
+  });
+
+}
+
+filterFields(){
+  if((this.departSearch !='' && this.destinationSearch == '') || (this.departSearch =='' && this.destinationSearch !='')){
+    this.filterButton = true;
+  }
+  else{
+    this.filterButton = false;
+  }
+}
+
+test(){
+  console.log("emptied!!!");
+}
 }

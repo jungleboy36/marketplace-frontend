@@ -21,4 +21,8 @@ export class AvisService {
   deleteReport(feedback_id: string): Observable<any[]> {
     return this.http.delete<any[]>(`${this.baseUrl}/delete_report/${feedback_id}`);
   }
+
+  ignore_feedback(feedback_id : string): Observable<any>{
+    return this.http.post<any>(`${this.baseUrl}/ignore_report/`,{feedback_id});
+  }
 }

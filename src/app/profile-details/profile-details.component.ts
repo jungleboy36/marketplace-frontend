@@ -10,6 +10,8 @@ import { ProfileService } from '../services/profile.service';
 export class ProfileDetailsComponent {
   id: string |null = null;
   userProfile : any;
+  feedbacks: any;
+  avis: boolean = false;
   constructor(private route: ActivatedRoute, private profileService : ProfileService){}
 
   ngOnInit(): void {
@@ -19,7 +21,7 @@ export class ProfileDetailsComponent {
     this.profileService.getUserProfile(this.id!).subscribe(
       data => {
         this.userProfile = data;
-
+        this.avis = this.userProfile.role == 'company';
         // Populate the form with user data
 
         // If image exists, set it as Base64 format
@@ -31,5 +33,23 @@ export class ProfileDetailsComponent {
     );
     console.log("profile details : ", this.userProfile);
 
+    this.loadFeedbacks();
   }
+
+  loadFeedbacks(){
+    this.profileService.retrieve_feedbacks(this.id!).subscribe((feedbacks)=>{
+      this.feedbacks = feedbacks;
+      
+      console.log("feedbacks: ", this.feedbacks);
+    })
+  }
+
+  getStarsArray(stars: string): number[] {
+    return Array(parseInt(stars, 10));
+  }
+
+  getEmptyStarsArray(stars: string): number[] {
+    return Array(5 - parseInt(stars, 10));
+  }
+
 }

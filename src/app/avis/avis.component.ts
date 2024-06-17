@@ -67,4 +67,21 @@ deleteReport(feedback : any){
     }
   );
 }}
+
+
+ignoreFeedback(id : string){
+  if (window.confirm('Voulez-vous ignorer cet avis ?')) {
+    this.avisService.ignore_feedback(id).subscribe((response)=>{
+      console.log("feedback ignored: ", response);
+      Swal.fire({
+        
+        text: 'Avis ignoré !',
+        icon: 'success',
+        confirmButtonText: 'OK'
+    });
+      this.getRports();
+    })
+    
+  }
+}
 }

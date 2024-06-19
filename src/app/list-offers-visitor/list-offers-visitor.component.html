@@ -56,11 +56,46 @@
 <!-- Button trigger modal -->
 
 <div style="width:200px; margin-left:750px;margin-top:-35px">
-    
-    <input type="text" class="form-control inline-block" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="applyFilter()"  >
+    <button type="button" class="btn btn-secondary" style="width:200px;" data-toggle="modal" data-target="#filterModal"  ><i class="bx bx-slider-alt" style="margin-right: 5px; margin-top:5px"></i>Filtrer</button> <br>
+    <input type="text" class="form-control inline-block" style="margin-top:10px" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="applyFilter()"  >
 
 </div>
 <!-- Modal -->
+
+<div class="modal fade" id="filterModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="width:350px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Filtrer</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="width:300px;">
+              
+                  <label style="margin-left:7px ; margin-bottom:-2px"><h6><b>Départ:</b></h6></label>
+                 <input type="text" class="form-control inline-block" placeholder="Rechercher depart..." [(ngModel)]="departSearch" (input)="filterFields()" (emptied)="filterFields()" id="departSearch" >
+                 <ul id="departSearch-suggestions" class="list-group"></ul>
+
+                <label style="margin-top: 10px;margin-left:7px ; margin-bottom:-2px"><h6><b>Destination:</b></h6></label>
+                 <input type="text" class="form-control inline-block" placeholder="Rechercher destination..." [(ngModel)]="destinationSearch" (input)="filterFields()" (emptied)="filterFields()" id="destinationSearch">
+                 <ul id="destinationSearch-suggestions" class="list-group"></ul>
+
+                
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" #filterClose hidden>Close</button>
+                <button type="button" class="btn btn-primary" (click)="applySmartSearch(departSearch,destinationSearch)" [disabled]="filterLoading || filterButton"><div class="spinner-border text-light" style="width:15px;height:15px;margin-right:3px" role="status" *ngIf="filterLoading" >
+                    <span class="sr-only">Loading...</span>
+                </div><i class="bx bx-search-alt-2" style="margin-right: 3px;" *ngIf="!filterLoading"></i>Rechercher</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Info Modal -->
 <div class="modal fade basicModalXL" id="infoModal" role="dialog" aria-hidden="true">

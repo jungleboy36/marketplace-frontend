@@ -11,6 +11,7 @@ import Swal from 'sweetalert2';
 
 
 export class ResetPasswordComponent {
+  emailSent : boolean = false;
   resetPasswordForm: FormGroup;
   constructor(private authService: AuthService, private fb: FormBuilder){
     this.resetPasswordForm = this.fb.group({
@@ -28,18 +29,8 @@ export class ResetPasswordComponent {
       const email = this.resetPasswordForm.value.email;
       this.authService.resetPassword(email).subscribe(
         response => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Succès',
-            text: 'Le lien de réinitialisation du mot de passe a été envoyé à votre adresse e-mail.'
-          });
-        },
-        error => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Erreur',
-            text: "Une erreur s'est produite lors de l'envoi du lien de réinitialisation du mot de passe."
-          });
+          this.emailSent = true;
+       
         }
       );
     }

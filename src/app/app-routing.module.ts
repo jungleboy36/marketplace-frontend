@@ -22,6 +22,7 @@ import { PaymentComponent } from './payment/payment.component';
 import { ListOffersVisitorComponent } from './list-offers-visitor/list-offers-visitor.component';
 import { AvisComponent } from './avis/avis.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
+import { DashboardAdminComponent } from './dashboard-admin/dashboard-admin.component';
 const routes: Routes = [
 
 {path:'offers',
@@ -50,6 +51,7 @@ children :[
   {path :'avis',component: AvisComponent, canActivate: [AuthGuard], data: { expectedRole: 'admin' }},
   {path:'companies',component:AdminCompaniesComponent , canActivate: [AuthGuard], data: { expectedRole: 'admin' }},
   {path:'clients',component:AdminClientsComponent , canActivate: [AuthGuard], data: { expectedRole: 'admin' }},
+  {path:'dashboard',component:DashboardAdminComponent,canActivate: [AuthGuard], data: { expectedRole: 'admin' }}
 
 ]},
   { path: '**', redirectTo: '/home', pathMatch: 'full' }

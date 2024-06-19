@@ -13,26 +13,73 @@
         <br>
         <h2>Demandes</h2>
         <!-- Add demande modal -->
-        <div *ngIf="role === 'company'">
-            <br>
-            <button type="button" (click)="refresh()" class="btn btn-primary" style="width: 50px;height:30px;margin-bottom:10px">
-                <i class="bx bx-revision"></i>
-             </button><br>
-        <div style="width:200px; margin-left:1000px;margin-top:-45px;">
-            <input type="text" class="form-control inline-block" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="applyFilter()" >
-        </div>
-    </div>
-    <div *ngIf="role === 'client'">
-        <button type="button" (click)="refresh()" class="btn btn-primary" style="width: 50px;height:30px;margin-bottom:10px">
-            <i class="bx bx-revision"></i>
-         </button><br>
-        <button type="button" class="btn btn-primary" style="width: 120px;" data-toggle="modal"  data-target="#basicModal">+ Ajouter
-        </button>
     
-        <div style="width:200px; margin-left:1000px;margin-top:-33px">
-            <input type="text" class="form-control inline-block" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="applyFilter()" >
+            <br>
+            <button type="button" class="btn btn-primary" style="width: 120px;margin-top:-20px" data-toggle="modal"  data-target="#basicModal" *ngIf="role === 'client'">+ Ajouter
+            </button>
+        <div style="width:200px; margin-left:1000px;margin-top:-40px;">
+            <button type="button" class="btn btn-secondary" style="width:200px;" data-toggle="modal" data-target="#filterModal"  ><i class="bx bx-slider-alt" style="margin-right: 5px; margin-top:5px"></i>Filtrer</button> <br>
+
+            <input type="text" class="form-control inline-block" style="margin-top: 10px;" placeholder="Rechercher..." [(ngModel)]="searchQuery" (input)="applyFilter()" >
+       
+    </div>
+    
+        
+      
+    
+       
+    
+
+
+
+    <div class="modal fade" id="filterModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document" style="width:350px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Filtrer</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="width:300px;">
+                  
+                      <label style="margin-left:7px ; margin-bottom:-2px"><h6><b>Départ:</b></h6></label>
+                     <input type="text" class="form-control inline-block" placeholder="Rechercher depart..." [(ngModel)]="departSearch"  id="departSearch" >
+                    
+    
+                    <label style="margin-top: 10px;margin-left:7px ; margin-bottom:-2px"><h6><b>Destination:</b></h6></label>
+                     <input type="text" class="form-control inline-block" placeholder="Rechercher destination..." [(ngModel)]="destinationSearch"  id="destinationSearch">
+                     
+                    
+                     <label style="margin-top: 10px;margin-left:7px ; margin-bottom:-2px"><h6><b>Date entre:</b></h6></label><br>
+
+                        <input type="date" class="form-control" style="width: 130px;display:inline-block;margin-left:10px" [(ngModel)]="startDate"> - <input type="date" class="form-control" [(ngModel)]="endDate" style="width: 130px; display:inline-block;margin-left:5px">
+
+                     <br>
+                     <label style="margin-top: 10px;margin-left:7px ; margin-bottom:-2px"><h6><b>Budget entre:</b></h6></label><br>
+                        <input type="number" class="form-control" style="width: 100px;display:inline-block;margin-left:40px" [(ngModel)]="minBudget" placeholder="0€" > - <input type="number" class="form-control" [(ngModel)]="maxBudget" style="width: 100px; display:inline-block;margin-left:5px" placeholder="9999€"> 
+
+                      
+                    
+                    </div>
+    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" #filterClose hidden>Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="resetForm()">Réinitialiser</button>
+
+                    <button type="button" class="btn btn-primary" (click)="applyFilter()" [disabled]="filterLoading || filterButton"><div class="spinner-border text-light" style="width:15px;height:15px;margin-right:3px" role="status" *ngIf="filterLoading" >
+                        <span class="sr-only">Loading...</span>
+                    </div><i class="bx bx-search-alt-2" style="margin-right: 3px;" *ngIf="!filterLoading"></i>Rechercher</button>
+                </div>
+            </div>
         </div>
     </div>
+    
+    
+
+
         <!-- Add Demande Modal -->
         <div class="modal fade" id="basicModal" role="dialog" aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -102,7 +149,7 @@
                             <br>
                             <b>Description :</b> {{demandeDetails.description}}
                             <br>
-                            <b>Date Déménagement : </b>{{demandeDetails.date_formatted}}
+                            <b>Date Déménagement : </b>{{demandeDetails.date | date :' dd MMM yyyy'}}
                             
                             <br>
                             <b> depart : </b>{{demandeDetails.depart}}
@@ -110,7 +157,6 @@
                             <b> depart : </b>{{demandeDetails.destination}}
                             <br>
                             <b> Budget :</b> {{demandeDetails.price}} €
-                            <br> Username : {{demandeDetails.username}}
                         </p>
                     </div>
                     <div class="modal-footer">
@@ -160,7 +206,7 @@
                     <div class="card-body" style="margin-top: -20px;">
                         <p><b>Description: </b>{{demande.description}}
                            <br>
-                           <b>date déménagement: </b> {{demande.date | date}}
+                           <b>date déménagement: </b> {{demande.date | date : 'dd MMM yyyy'}}
                            <br> 
                            <b>Départ:</b>Le {{demande.depart}}<br>
                            <b>Destination: </b>Le {{demande.destination}}<br>

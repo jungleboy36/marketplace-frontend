@@ -25,6 +25,10 @@ class NoMarkerPlan extends L.Routing.Plan {
   styleUrls: ['./offer-list.component.html'],
 })
 export class OfferListComponent implements OnInit, AfterViewInit {
+  departStartDate: Date | null = null;
+  departEndDate: Date | null = null;
+  destinationStartDate: Date | null = null;
+  destinationEndDate: Date | null = null;
   searchedOffers:any[] = [];
   isAdding: boolean = false;
   departSearch : string ='';
@@ -390,7 +394,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   
 
   confirmDelete(id: string) {
-    if (window.confirm('Are you sure you want to delete this offer?')) {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) {
       this.deleteOffer(id);
     }
   }
@@ -723,6 +727,26 @@ applySmartSearch(departure: string, destination: string, maxDistance: number = 2
     this.filteredOffers = this.offers;
   }
 
+  if (this.departStartDate ) {
+    this.filteredOffers = this.filteredOffers.filter(offer =>
+      offer.depart_date >= this.departStartDate! 
+    );
+  }
+  if (this.departEndDate) {
+    this.filteredOffers = this.filteredOffers.filter(offer =>
+      offer.depart_date <= this.departEndDate!
+    );
+  }
+  if (this.destinationStartDate ) {
+    this.filteredOffers = this.filteredOffers.filter(offer =>
+      offer.arrival_date >= this.destinationStartDate! 
+    );
+  }
+  if (this.destinationEndDate) {
+    this.filteredOffers = this.filteredOffers.filter(offer =>
+      offer.arrival_date <= this.destinationEndDate!
+    );
+  }
   // Apply search query filter on filteredOffers
   
  if(this.departSearch ==='' && this.destinationSearch ===''){
@@ -803,7 +827,15 @@ filterFields(){
   }
 }
 
-test(){
-  console.log("emptied!!!");
+resetForm() {
+  this.departSearch = '';
+  this.destinationSearch = '';
+  this.departStartDate = null;
+  this.departEndDate = null;
+  this.destinationStartDate = null;
+  this.destinationEndDate = null;
+  this.filterOption = 'all';
+  this.filteredOffers = this.offers;
+  this.searchQuery = '';
 }
 }

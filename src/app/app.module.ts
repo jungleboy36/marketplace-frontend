@@ -32,7 +32,12 @@ import { PaymentComponent } from './payment/payment.component';
 import { ListOffersVisitorComponent } from './list-offers-visitor/list-offers-visitor.component';
 import { AvisComponent } from './avis/avis.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
-
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { DashboardAdminComponent } from './dashboard-admin/dashboard-admin.component';
 const firebaseConfig = environment.firebaseConfig;
 @NgModule({
   declarations: [
@@ -61,6 +66,7 @@ const firebaseConfig = environment.firebaseConfig;
     ListOffersVisitorComponent,
     AvisComponent,
     ResetPasswordComponent,
+    DashboardAdminComponent,
    
     
     
@@ -74,6 +80,11 @@ const firebaseConfig = environment.firebaseConfig;
     ReactiveFormsModule,
     AngularFireModule,
     AngularFireAuthModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatNativeDateModule,
+    NoopAnimationsModule,
+    MatInputModule,
     AngularFireModule.initializeApp(environment.firebaseConfig)
 
     

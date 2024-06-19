@@ -11,6 +11,7 @@ import * as $ from 'jquery';
 import * as L from 'leaflet';
 import 'leaflet-routing-machine';
 import * as LCG from 'leaflet-control-geocoder';
+import * as turf from '@turf/turf';
 
 @Component({
   selector: 'app-list-offers-visitor',
@@ -18,6 +19,13 @@ import * as LCG from 'leaflet-control-geocoder';
   styleUrls: ["./assets/css/main.css"]
 })
 export class ListOffersVisitorComponent implements OnInit {
+  departStartDate: Date | null = null;
+  departEndDate: Date | null = null;
+  destinationStartDate: Date | null = null;
+  destinationEndDate: Date | null = null;
+  departSearch : string ='';
+  destinationSearch : string ='';
+  filterLoading : boolean= false;
   isAdding: boolean = false;
   map: any;
   offerMap : any;
@@ -53,6 +61,7 @@ export class ListOffersVisitorComponent implements OnInit {
   offerForm!: FormGroup;
   @ViewChild('cancelButton') cancelButton: ElementRef | undefined;
   @ViewChild('addOfferModal') addOfferModalButton: ElementRef | undefined;
+  @ViewChild('filterClose') filterCloseButton: ElementRef | undefined;
 
   offerDetails: any = {
     title: '',
@@ -70,6 +79,8 @@ export class ListOffersVisitorComponent implements OnInit {
   public role: string | null = null;
   minDate: string;
   nb : number = 0;
+  searchedOffers: any[]=[];
+  filterButton: boolean = false;
   constructor(
     private offerService: OfferService,
     private router: Router,
@@ -93,6 +104,11 @@ export class ListOffersVisitorComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const destinationSearch = document.getElementById('destinationSearch') as HTMLInputElement;
+    const departSearch = document.getElementById('departSearch') as HTMLInputElement;
+    const destinationSearchSuggestions = document.getElementById('destinationSearch-suggestions') as HTMLUListElement;
+    const departSearchSuggestions = document.getElementById('departSearch-suggestions') as HTMLUListElement;
+    
     this.customIcon = L.icon({
       iconUrl: 'assets/img/marker-icon.png', // Path to your custom icon image
       iconSize: [25, 41], // Size of the icon [width, height]
@@ -101,6 +117,50 @@ export class ListOffersVisitorComponent implements OnInit {
   });
     this.loadOffers();
     this.initializeOfferMap();
+    const geocoder = LCG.geocoder({
+      defaultMarkGeocode: false,
+      geocoder: new (L.Control as any).Geocoder.Nominatim({
+        geocodingQueryParams: {
+          countrycodes: 'fr',  },
+      }),
+    });
+
+    const showSuggestions = (query: string, suggestionsElement: HTMLUListElement, inputElement: HTMLInputElement) => {
+      geocoder.options.geocoder!.geocode(query, (results) => {
+        suggestionsElement.innerHTML = '';
+        results.forEach(result => {
+          const suggestionItem = document.createElement('li');
+          suggestionItem.classList.add('list-group-item');
+          suggestionItem.textContent = result.name;
+          suggestionItem.addEventListener('click', () => {
+            inputElement.value = result.name;
+            suggestionsElement.innerHTML = '';
+            
+          });
+          suggestionsElement.appendChild(suggestionItem);
+        });
+      });
+    };
+    destinationSearch.addEventListener('keyup', (event) => {
+   
+      const query = (event.target as HTMLInputElement).value;
+      if (query.length > 2) {
+        showSuggestions(query, destinationSearchSuggestions, destinationSearch);
+      } else {
+        destinationSearchSuggestions.innerHTML = '';
+      }
+    });
+
+   
+    departSearch.addEventListener('keyup', (event) => {
+   
+      const query = (event.target as HTMLInputElement).value;
+      if (query.length > 2) {
+        showSuggestions(query, departSearchSuggestions, departSearch);
+      } else {
+        departSearchSuggestions.innerHTML = '';
+      }
+    });
   }
 
 
@@ -222,24 +282,20 @@ export class ListOffersVisitorComponent implements OnInit {
 
 
   applyFilter() {
-    if (this.filterOption === 'mine' ) {
-      // Filter offers to show only the user's offers
-      this.filteredOffers = this.offers.filter(offer => offer.user_id === this.authService.getUserId());
-    } else {
-      // Show all offers
-      this.filteredOffers = this.offers;
+    console.log('apply filter triggered!!');
+    if (this.searchQuery === '') {
+      this.filteredOffers = this.searchedOffers;
     }
-  
+    else{
     // Apply search query filter on filteredOffers
-    this.filteredOffers = this.filteredOffers.filter(offer =>
+    this.filteredOffers = this.searchedOffers.filter(offer =>
       offer.depart_date.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.origin.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.destination.toLowerCase().includes(this.searchQuery.toLowerCase())
+      offer.arrival_date.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
   
     );
   }
-
-
+  }
 
   removeBackdrop(): void {
     const backdrop = document.querySelector('.modal-backdrop.fade.show');
@@ -254,6 +310,96 @@ mapModal(){
   }, 500);
 }
 
+applySmartSearch(departure: string, destination: string, maxDistance: number = 20): void {
+  this.filterLoading= true;
+
+  if (this.filterOption === 'mine' ) {
+    // Filter offers to show only the user's offers
+    this.filteredOffers = this.offers.filter(offer => offer.user_id === this.authService.getUserId());
+  } else {
+    // Show all offers
+    this.filteredOffers = this.offers;
+  }
+
+  // Apply search query filter on filteredOffers
+  
+ if(this.departSearch ==='' && this.destinationSearch ===''){
+  this.searchedOffers = this.filteredOffers;
+  this.filterLoading = false;
+  if(this.filterCloseButton){
+    this.filterCloseButton.nativeElement.click();
+  }
+ }
+  const geocoder = (L.Control as any).Geocoder.nominatim();
+  // Geocode the departure address
+  geocoder.geocode(departure, (departResults: any) => {
+    if (departResults.length === 0) {
+      console.error('Departure address not found');
+      return;
+    }
+    const departLatLng = new L.LatLng(departResults[0].center.lat, departResults[0].center.lng);
+
+    // Geocode the destination address
+    geocoder.geocode(destination, (destinationResults: any) => {
+      if (destinationResults.length === 0) {
+        console.error('Destination address not found');
+        return;
+      }
+      const destinationLatLng = new L.LatLng(destinationResults[0].center.lat, destinationResults[0].center.lng);
+
+      this.filteredOffers = this.filteredOffers.filter(offer => {
+        if (offer.route) {
+          const route = JSON.parse(offer.route);
+          const routeCoords = route.coordinates.map((coord: any) => [coord.lng, coord.lat]);
+
+          // Convert route coordinates to a LineString for turf.js
+          const line = turf.lineString(routeCoords);
+
+          // Convert depart and destination points to turf points
+          const departPoint = turf.point([departLatLng.lng, departLatLng.lat]);
+          const destinationPoint = turf.point([destinationLatLng.lng, destinationLatLng.lat]);
+
+          // Check if depart and destination points are within maxDistance of the route
+          const departNearRoute = turf.nearestPointOnLine(line, departPoint, { units: 'kilometers' }).properties.dist <= maxDistance;
+          const destinationNearRoute = turf.nearestPointOnLine(line, destinationPoint, { units: 'kilometers' }).properties.dist <= maxDistance;
+
+          if (departNearRoute && destinationNearRoute) {
+            // Ensure depart point comes before destination point along the route
+            const departIndex = routeCoords.findIndex(([lng, lat]: [number, number]) => {
+              return turf.distance(turf.point([lng, lat]), departPoint, { units: 'kilometers' }) <= maxDistance;
+            });
+
+            const destinationIndex = routeCoords.findIndex(([lng, lat]: [number, number]) => {
+              return turf.distance(turf.point([lng, lat]), destinationPoint, { units: 'kilometers' }) <= maxDistance;
+            });
+
+            return departIndex !== -1 && destinationIndex !== -1 && departIndex < destinationIndex;
+          }
+
+          return false;
+        }
+
+        return false;
+      });
+      this.searchedOffers = this.filteredOffers;
+
+    });
+    this.filterLoading = false;
+    if(this.filterCloseButton){
+      this.filterCloseButton.nativeElement.click();
+    }
+  });
+
+}
+
+filterFields(){
+  if((this.departSearch !='' && this.destinationSearch == '') || (this.departSearch =='' && this.destinationSearch !='')){
+    this.filterButton = true;
+  }
+  else{
+    this.filterButton = false;
+  }
+}
 
 
 

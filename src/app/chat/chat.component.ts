@@ -40,6 +40,7 @@ export class ChatComponent implements OnInit,AfterViewInit {
  paymentDone : boolean = false;
   paymentChannel: any;
   feedback_id : string = '';
+  loadingAvis : boolean = false;
   pusher = new Pusher('1c26d2cd463b15a19666', {
       cluster: 'eu',
     })
@@ -52,7 +53,7 @@ export class ChatComponent implements OnInit,AfterViewInit {
     (window as any).onPaymentSuccess = this.onPaymentSuccess.bind(this);
     (window as any).onCancelPayment = this.cancelPayment.bind(this);
     (window as any).openModal = this.openModal.bind(this);
-
+    this.isCompanyy= localStorage.getItem('role') == 'company'
     const pusher = new Pusher('1c26d2cd463b15a19666', {
       cluster: 'eu',
     })
@@ -321,7 +322,7 @@ LoadData(){
         //console.log('data from chat component: ',data);
 
         //console.log('role from chat component: ',data.role);
-        this.isCompanyy= data.role == 'company'
+        
         this.paypalExist = !!data.paypalEmail;
         console.log('paypal email data: ',this.paypalExist);
       })
@@ -438,6 +439,7 @@ getPaymentData():any{
   this.chatService.retrievePayment(this.selectedConversation.payment_id).subscribe((data)=>{
   this.amount = data.amount;
   this.paymentDone = data.paid ;
+  this.loadingAvis = true;
   console.log("payment data: ",data);
   })
 }

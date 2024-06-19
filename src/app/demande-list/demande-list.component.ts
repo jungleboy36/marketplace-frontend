@@ -10,11 +10,18 @@ import { ChatService } from '../services/chat.service';
 import * as L from 'leaflet';
 import 'leaflet-routing-machine';
 import * as LCG from 'leaflet-control-geocoder';
+import * as turf from '@turf/turf';
+import Pusher from 'pusher-js';
+
 @Component({
   selector: 'app-offer-list',
   templateUrl: './demande-list.component.html',
 })
 export class DemandeListComponent implements OnInit {
+  departSearch : string ='';
+  destinationSearch : string ='';
+  filterLoading : boolean= false;
+  filterButton : boolean = false;
   demandes: any[] = [];
   len! : number ;
   errorMessage: string = '';
@@ -23,6 +30,12 @@ export class DemandeListComponent implements OnInit {
   filterOption: string = 'all';
   role : string | null = null;
   isAdding : boolean = false;
+  searchedDemandes : any[] = [];
+  startDate: Date | null = null;
+endDate: Date | null = null;
+minBudget: number | null = null;
+maxBudget: number | null = null;
+
   newDemande:any = {
     id: null,
     title: null,
@@ -53,14 +66,21 @@ export class DemandeListComponent implements OnInit {
 
   demandeForm!: FormGroup ;
   @ViewChild('cancelButton') cancelButton: ElementRef | undefined;
+  @ViewChild('filterClose') filterCloseButton: ElementRef | undefined;
+
   filteredDemandes: any[] =[];
   minDate: string;
+  demandesChannel: any;
 
   constructor(private demandeService : DemandeService, private router : Router,private formBuilder: FormBuilder, protected authService : AuthService, private datePipe : DatePipe,private chatService : ChatService) { 
     this.minDate = this.demandeService.getMinDate();
   }
 
   ngOnInit(): void {
+    const destinationSearch = document.getElementById('destinationSearch') as HTMLInputElement;
+    const departSearch = document.getElementById('departSearch') as HTMLInputElement;
+    const destinationSearchSuggestions = document.getElementById('destinationSearch-suggestions') as HTMLUListElement;
+    const departSearchSuggestions = document.getElementById('departSearch-suggestions') as HTMLUListElement;
     this.minDate = this.demandeService.getMinDate();
     console.log("minDate: ",this.minDate);
 
@@ -76,6 +96,16 @@ export class DemandeListComponent implements OnInit {
       date :[null,Validators.required],
 
 
+    });
+
+    const pusher = new Pusher('1c26d2cd463b15a19666', {
+      cluster: 'eu',
+    });
+    this.demandesChannel = pusher.subscribe('demandes');
+    this.demandesChannel.bind('update', (data:any) => {
+      setTimeout(() => {
+        this.loadDemandes();
+      }, 3000); 
     });
     const originInput = document.getElementById('origin') as HTMLInputElement;
     const destinationInput = document.getElementById('destination') as HTMLInputElement;
@@ -127,7 +157,7 @@ export class DemandeListComponent implements OnInit {
         destinationSuggestions.innerHTML = '';
       }
     });
-    
+  
   }
   
   clickCancelButton() {
@@ -150,6 +180,9 @@ export class DemandeListComponent implements OnInit {
     this.demandeService.getDemandes().subscribe(
       (demandes: any[]) => {
         this.demandes = demandes.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+        this.demandes.forEach(demande =>{
+          demande.date = JSON.parse(demande.date);
+        });
         this.filteredDemandes = [...this.demandes];
         localStorage.setItem('cachedDemandes', JSON.stringify(this.demandes));
         this.loading = false ;
@@ -166,6 +199,9 @@ export class DemandeListComponent implements OnInit {
     this.demandeService.getDemandesById(this.authService.getUserId()).subscribe(
       (demandes: any[]) => {
         this.demandes = demandes.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+        this.demandes.forEach(demande =>{
+          demande.date = JSON.parse(demande.date);
+        });
         this.filteredDemandes = [...this.demandes];
         localStorage.setItem('cachedDemandes', JSON.stringify(this.demandes));
         this.loading = false ;
@@ -182,7 +218,7 @@ export class DemandeListComponent implements OnInit {
 
 
   confirmDelete(id: string) {
-    if (window.confirm('Are you sure you want to delete this offer?')) {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) {
       this.deleteDemande(id);
     }
   }
@@ -190,7 +226,6 @@ export class DemandeListComponent implements OnInit {
   deleteDemande(id: string) {
     this.demandeService.deleteDemande(id).subscribe(
       () => {
-        // If the delete operation is successful, reload the offers
         this.loadDemandes();
       },
       (error) => {
@@ -254,21 +289,7 @@ export class DemandeListComponent implements OnInit {
     );
   }
 
-  applyFilter() {
-    if (this.filterOption === 'mine' ) {
-      // Filter offers to show only the user's offers
-      this.filteredDemandes = this.demandes.filter(demande => demande.user_id === this.authService.getUserId());
-    } else {
-      // Show all offers
-      this.filteredDemandes = this.demandes;
-    }
-  
-    // Apply search query filter on filteredOffers
-    this.filteredDemandes = this.filteredDemandes.filter(offer =>
-      offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
-    );
-  }
+
 
   refresh() {
     this.loading = true;
@@ -321,5 +342,60 @@ contacter(receiver_id : string,receiver_display_name:string) {
     },
   )
 }
+
+applyFilter() {
+  // Reset filtered demands
+  this.filteredDemandes = this.demandes;
+
+  // Apply filters based on search criteria
+  if (this.departSearch) {
+    this.filteredDemandes = this.filteredDemandes.filter(demande =>
+      demande.depart.toLowerCase().includes(this.departSearch.toLowerCase())
+    );
+  }
+
+  if (this.destinationSearch) {
+    this.filteredDemandes = this.filteredDemandes.filter(demande =>
+      demande.destination.toLowerCase().includes(this.destinationSearch.toLowerCase())
+    );
+  }
+
+  if (this.startDate ) {
+    this.filteredDemandes = this.filteredDemandes.filter(demande =>
+      demande.date >= this.startDate! 
+    );
+  }
+  if (this.endDate) {
+    this.filteredDemandes = this.filteredDemandes.filter(demande =>
+       demande.date <= this.endDate!
+    );
+  }
+  if (this.minBudget !== null) {
+    this.filteredDemandes = this.filteredDemandes.filter(demande =>
+      demande.price >= this.minBudget!
+    );
+  }
+
+  if (this.maxBudget !== null) {
+    this.filteredDemandes = this.filteredDemandes.filter(demande =>
+      demande.price <= this.maxBudget!
+    );
+  }
+  if(this.filterCloseButton){
+    this.filterCloseButton.nativeElement.click();
+  }
+}
+
+
+resetForm() {
+  this.departSearch = '';
+  this.destinationSearch = '';
+  this.startDate = null;
+  this.endDate = null;
+  this.minBudget = null;
+  this.maxBudget = null;
+  this.filteredDemandes = this.demandes;
+  this.searchQuery= '';}
+
 
 }

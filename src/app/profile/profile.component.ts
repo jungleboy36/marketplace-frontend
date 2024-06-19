@@ -145,7 +145,7 @@ export class ProfileComponent implements OnInit {
                 this.loading = false;
                 Swal.fire({
                     title: 'Success!',
-                    text: 'Profile updated successfully',
+                    text: 'Profil mis à jour avec succès',
                     icon: 'success',
                     confirmButtonText: 'OK'
                 }).then(() => {
@@ -163,7 +163,7 @@ export class ProfileComponent implements OnInit {
                 console.error('Error updating user profile', error);
                 Swal.fire({
                     title: 'Error',
-                    text: 'Error updating profile',
+                    text: 'Erreur de mise à jour du profil',
                     icon: 'error',
                     confirmButtonText: 'OK'
                 });
@@ -175,7 +175,7 @@ export class ProfileComponent implements OnInit {
         console.error('Form is not valid');
         Swal.fire({
             title: 'Invalid form',
-            text: 'Please correct the errors in the form',
+            text: 'Veuillez corriger les erreurs dans le formulaire',
             icon: 'warning',
             confirmButtonText: 'OK'
         });

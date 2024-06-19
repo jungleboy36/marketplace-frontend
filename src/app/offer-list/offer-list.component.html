@@ -67,13 +67,23 @@
                 <label style="margin-top: 10px;margin-left:7px ; margin-bottom:-2px"><h6><b>Destination:</b></h6></label>
                  <input type="text" class="form-control inline-block" placeholder="Rechercher destination..." [(ngModel)]="destinationSearch" (input)="filterFields()" (emptied)="filterFields()" id="destinationSearch">
                  <ul id="destinationSearch-suggestions" class="list-group"></ul>
+                 <label style="margin-top: 10px;margin-left:7px ; margin-bottom:-2px"><h6><b>Date départ entre:</b></h6></label><br>
 
-                
+                 <input type="date" class="form-control" style="width: 130px;display:inline-block;margin-left:10px" [(ngModel)]="departStartDate"> - <input type="date" class="form-control" [(ngModel)]="departEndDate" style="width: 130px; display:inline-block;margin-left:5px">
+
+              <br>
+              <label style="margin-top: 10px;margin-left:7px ; margin-bottom:-2px"><h6><b>Date arrivé entre:</b></h6></label><br>
+
+              <input type="date" class="form-control" style="width: 130px;display:inline-block;margin-left:10px" [(ngModel)]="destinationStartDate"> - <input type="date" class="form-control" [(ngModel)]="destinationEndDate" style="width: 130px; display:inline-block;margin-left:5px">
+
+           <br>
                 </div>
 
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal" #filterClose hidden>Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="resetForm()">Réinitialiser</button>
+
                 <button type="button" class="btn btn-primary" (click)="applySmartSearch(departSearch,destinationSearch)" [disabled]="filterLoading || filterButton"><div class="spinner-border text-light" style="width:15px;height:15px;margin-right:3px" role="status" *ngIf="filterLoading" >
                     <span class="sr-only">Loading...</span>
                 </div><i class="bx bx-search-alt-2" style="margin-right: 3px;" *ngIf="!filterLoading"></i>Rechercher</button>

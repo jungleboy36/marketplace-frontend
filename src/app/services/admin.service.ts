@@ -7,7 +7,7 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class AdminService {
-  private baseUrl = environment.apiUrl +'/ad-api';  // Update with your backend URL
+  private baseUrl = environment.apiUrl ;  // Update with your backend URL
 
   constructor(private http: HttpClient) {}
 
@@ -36,5 +36,9 @@ export class AdminService {
   }
   markAllNotificationsAsRead(userId : string): Observable<any> {
     return this.http.post<any>(`http://localhost:8000/notifications/mark-all-as-read/?user_id=${userId}`, {});
+  }
+
+  dashboard():Observable<any>{
+    return this.http.get<any>(`${this.baseUrl}/dashboard`);
   }
 }

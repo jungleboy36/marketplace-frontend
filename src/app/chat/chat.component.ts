@@ -132,7 +132,8 @@ export class ChatComponent implements OnInit,AfterViewInit {
     this.paymentChannel = this.pusher.subscribe(this.selectedConversation.id);
     this.paymentChannel.bind('paiements',(data :any)=>{
       this.getPaymentData();
-      
+      this.scrollToBottom();
+
 
     });
 
@@ -146,7 +147,12 @@ export class ChatComponent implements OnInit,AfterViewInit {
       (messages: any[]) => {
         this.messages = messages;
         //console.log("messages: ",this.messages);
-      },
+        setTimeout(() => {
+          this.scrollToBottom();
+        }, 500);
+
+      }
+      ,
       (error) => {
         console.error('Error fetching messages:', error);
       }
@@ -226,7 +232,7 @@ export class ChatComponent implements OnInit,AfterViewInit {
         this.scrollToBottom();
 
       }
-      scrollToBottom() {
+      scrollToBottom():void {
         // After adding new content to the chat container
 // Select all elements with the class "simplebar-content-wrapper"
 const contentWrappers = document.querySelectorAll('.simplebar-content-wrapper');
@@ -236,6 +242,7 @@ if (contentWrappers.length >= 3) {
     // Get the third element (index 2 because JavaScript arrays are zero-based)
     const thirdContentWrapper = contentWrappers[2];
     thirdContentWrapper.scrollTop = thirdContentWrapper.scrollHeight;
+    return;
     // Now you can work with the third content wrapper element
     //console.log(thirdContentWrapper);
 } else {

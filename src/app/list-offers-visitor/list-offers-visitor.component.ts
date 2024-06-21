@@ -321,6 +321,26 @@ applySmartSearch(departure: string, destination: string, maxDistance: number = 2
     this.filteredOffers = this.offers;
   }
 
+  if (this.departStartDate ) {
+    this.filteredOffers = this.filteredOffers.filter(offer =>
+      offer.depart_date >= this.departStartDate! 
+    );
+  }
+  if (this.departEndDate) {
+    this.filteredOffers = this.filteredOffers.filter(offer =>
+      offer.depart_date <= this.departEndDate!
+    );
+  }
+  if (this.destinationStartDate ) {
+    this.filteredOffers = this.filteredOffers.filter(offer =>
+      offer.arrival_date >= this.destinationStartDate! 
+    );
+  }
+  if (this.destinationEndDate) {
+    this.filteredOffers = this.filteredOffers.filter(offer =>
+      offer.arrival_date <= this.destinationEndDate!
+    );
+  }
   // Apply search query filter on filteredOffers
   
  if(this.departSearch ==='' && this.destinationSearch ===''){
@@ -392,6 +412,19 @@ applySmartSearch(departure: string, destination: string, maxDistance: number = 2
 
 }
 
+
+
+resetForm() {
+  this.departSearch = '';
+  this.destinationSearch = '';
+  this.departStartDate = null;
+  this.departEndDate = null;
+  this.destinationStartDate = null;
+  this.destinationEndDate = null;
+  this.filterOption = 'all';
+  this.filteredOffers = this.offers;
+  this.searchQuery = '';
+}
 filterFields(){
   if((this.departSearch !='' && this.destinationSearch == '') || (this.departSearch =='' && this.destinationSearch !='')){
     this.filterButton = true;

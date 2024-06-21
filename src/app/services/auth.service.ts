@@ -71,7 +71,7 @@ import { environment } from 'src/environments/environment';
                 this.loadingSubject.next(true); 
                 this.setPicture().then(()=>{
                 if (this.role === 'admin') {
-                  this.router.navigate(['/admin/companies']);
+                  this.router.navigate(['/admin/dashboard']);
                 } else if (this.role === 'client') {
                   this.router.navigate(['/offers']);
                 } else {

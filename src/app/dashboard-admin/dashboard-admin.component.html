@@ -9,6 +9,24 @@
         <title>Olaf - Admin Dashboard Template</title>
 
         <link rel="icon" type="image/png" href="assets/img/favicon.png">
+        <style>
+            
+            .flex-container {
+                display: flex;
+                gap: 10px; 
+                margin-left: 0px;
+                /* Adjust the gap as needed */
+            }
+            
+            .new-product-box,
+            .new-user-box,
+            .upcoming-product-box {
+                flex: 1;
+               
+                /* Add additional styles as needed */
+            }
+            
+        </style>
     </head>
 
     <body>
@@ -39,9 +57,20 @@
                 </div>
             </div>
             <!-- End Welcome Area -->
-
+            <div *ngIf="loading" class="d-flex justify-content-center" style="margin-top: 100px;">
+            <div class="spinner-grow text-dark" role="status" style="margin-right:20px;">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <div class="spinner-grow text-dark" role="status" style="margin-right:20px;">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <div class="spinner-grow text-dark" role="status" style="margin-right:5px;">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <div [hidden]="loading">
             <!-- Stats Area -->
-            <div class="ecommerce-stats-area">
+            <div class="ecommerce-stats-area" >
                 <div class="row">
                     <div class="col-lg-3 col-sm-6 col-md-6">
                         <div class="single-stats-card-box">
@@ -66,7 +95,7 @@
                     <div class="col-lg-3 col-sm-6 col-md-6">
                         <div class="single-stats-card-box">
                             <div class="icon">
-                                <i class='bx bx-purchase-tag'></i>
+                                <i class='bx bx-file'></i>
                             </div>
                             <span class="sub-title">Demandes</span>
                             <h3>{{documentCount.demandes}}  <span class="badge"></span></h3>
@@ -88,39 +117,18 @@
 
             <!-- Start -->
             <div class="row">
-                <div class="col-lg-6 col-md-12">
+                <div class="col-lg-6 col-md-9">
                     <div class="card mb-30">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3>Revenue Summary</h3>
+                            <h3>Total des versements par mois</h3>
 
-                            <div class="dropdown">
-                                <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class='bx bx-dots-horizontal-rounded' ></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-show'></i> View
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-edit-alt'></i> Edit
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-trash'></i> Delete
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-printer'></i> Print
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-download'></i> Download
-                                    </a>
-                                </div>
-                            </div>
+                  
                         </div>
 
                         <div class="card-body">
                             <div class="revenue-summary-content">
                                 <div class="d-sm-flex">
-                                    <div class="pr-4 border-right">
+                                    <!--<div class="pr-4 border-right">
                                         <p class="mb-1">Net Revenue</p>
                                         <h5 class="mb-0">
                                             <span class="font-weight-bold">$50,525</span>
@@ -142,33 +150,96 @@
                                             <span class="font-weight-bold">$7,317</span>
                                             <span class="primary-text">+10.2%</span>
                                         </h5>
-                                    </div>
+                                    </div>-->
                                 </div>
                             </div>
 
-                            <div id="chart" class="extra-margin"></div>
+                            <div id="paymentChart" class="extra-margin"></div>
                         </div>
                     </div>
                 </div>
+              
+                <div class="col-lg-6 col-md-12">
+                    <div class="card recent-orders-box mb-30">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3>Paiements récents</h3>
 
-                <div class="col-lg-2 col-md-4">
-                    <div class="new-product-box">
-                        <div class="icon">
-                            <i class='bx bx-shopping-bag'></i>
+                       
                         </div>
-                        New Products
-                        <span class="sub-text d-block font-weight-bold">1.3K</span>
-                    </div>
 
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Société</th>
+                                            <th>Paiment créé à</th>
+                                            <th>Montant</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        
+                                        <tr *ngFor="let payment of payments">
+                                            <td class="name"><img [src]="payment.company_image" alt="image"> {{payment.company_name}}</td>
+                                            <td>{{payment.time | date: 'dd MMM yyyy'}}</td>
+                                            <td>{{payment.amount}}€</td>
+                                            <td><span class="badge badge-primary" *ngIf="payment.paid">Reçu</span></td>
+                                            <td><span class="badge badge-primary" *ngIf="!payment.paid">En attente</span></td>
+
+                                        </tr>
+                                    
+                                       <!-- <tr>
+                                            <td class="name"><img src="assets/img/user2.jpg" alt="image"> Tom Hardy</td>
+                                            <td>11 May 2019</td>
+                                            <td>$954</td>
+                                            <td><span class="badge badge-success">Pending</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="name"><img src="assets/img/user3.jpg" alt="image"> Colin Firth</td>
+                                            <td>10 May 2019</td>
+                                            <td>$214</td>
+                                            <td><span class="badge badge-danger">Declined</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="name"><img src="assets/img/user4.jpg" alt="image"> Jude Law</td>
+                                            <td>09 May 2019</td>
+                                            <td>$120</td>
+                                            <td><span class="badge badge-success">Pending</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="name"><img src="assets/img/user5.jpg" alt="image"> Idris Elba</td>
+                                            <td>08 May 2019</td>
+                                            <td>$999</td>
+                                            <td><span class="badge badge-primary">Received</span></td>
+                                        </tr>-->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-30 col-md-30">
+                <div class="flex-container">
+                    <div class="new-product-box" style="width: 250 !important;">
+                        <div class="icon">
+                            <i class='bx bxs-chat'></i>
+                        </div>
+                        Conversations
+                        <span class="sub-text d-block font-weight-bold">{{documentCount.conversations}}</span>
+                    </div>
+            
                     <div class="new-user-box">
                         <div class="icon">
                             <i class='bx bx-user-pin'></i>
                         </div>
-                        New Users
-                        <span class="sub-text d-block font-weight-bold">2.5K</span>
+                        Nouveaux utilisateurs
+                        <span class="sub-text d-block font-weight-bold">{{documentCount.new_users}}</span>
                     </div>
-
-                    <div class="upcoming-product-box">
+            
+                    <div class="new-product-box">
                         <div class="icon">
                             <i class='bx bx-cart-alt'></i>
                         </div>
@@ -176,9 +247,22 @@
                         <span class="sub-text d-block font-weight-bold">1.1K</span>
                     </div>
                 </div>
+            </div>
+            
 
-                <div class="col-lg-4 col-md-8">
-                    <div class="card browser-statistics-box mb-30">
+                <div class="row">
+                    <div class="col-lg-30 col-md-30">
+                        <div class="card mb-30">
+                            <div class="card-header">
+                                <h3>Nombre d'inscriptions de clients et d'entreprises</h3>
+                            </div>
+    
+                            <div class="card-body">
+                                <div id="clientCompanyChart" class="extra-margin"></div>
+                            </div>
+                        </div>
+                    </div>
+                   <!-- <div class="card browser-statistics-box mb-30">
                         <div class="card-header">
                             <h3>Browser Statistics</h3>
                         </div>
@@ -298,496 +382,31 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> End -->
                 </div>
             </div>
-            <!-- End -->
+            
 
             <!-- Start -->
             <div class="row">
-                <div class="col-lg-6 col-md-12">
-                    <div class="card mb-30 greetings-card-box">
-                        <div class="card-header">
-                            <h3>Best seller of the month</h3>
-                        </div>
+              
 
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="image">
-                                    <img src="assets/img/trophy.png" width="400" height="400" alt="image">
-                                </div>
-
-                                <div class="content">
-                                    <div class="icon mb-3">
-                                        <i class='bx bx-award'></i>
-                                    </div>
-                                    <h3>Congratulations Admin!</h3>
-                                    <p class="mb-0">You have done <span class="d-inline-block">99.9%</span> more sales today. Check your new badge in your profile.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-6 col-md-12">
-                    <div class="card mb-30">
-                        <div class="card-header">
-                            <h3>Client Recollection</h3>
-                        </div>
-
-                        <div class="card-body">
-                            <div id="client-recollection-chart" class="extra-margin"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
             <!-- End -->
 
-            <!-- Start -->
-            <div class="row">
-                <div class="col-lg-7 col-md-12">
-                    <div class="card recent-orders-box mb-30">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3>Recent Orders</h3>
-
-                            <div class="dropdown">
-                                <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class='bx bx-dots-horizontal-rounded' ></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-show'></i> View
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-edit-alt'></i> Edit
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-trash'></i> Delete
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-printer'></i> Print
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-download'></i> Download
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Invoice</th>
-                                            <th>Customer</th>
-                                            <th>Purchase On</th>
-                                            <th>Amount</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        <tr>
-                                            <td>#6791679</td>
-                                            <td class="name"><img src="assets/img/user1.jpg" alt="image"> Atony Rony</td>
-                                            <td>12 May 2019</td>
-                                            <td>$564</td>
-                                            <td><span class="badge badge-primary">Received</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>#6791674</td>
-                                            <td class="name"><img src="assets/img/user2.jpg" alt="image"> Tom Hardy</td>
-                                            <td>11 May 2019</td>
-                                            <td>$954</td>
-                                            <td><span class="badge badge-success">Pending</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>#6791654</td>
-                                            <td class="name"><img src="assets/img/user3.jpg" alt="image"> Colin Firth</td>
-                                            <td>10 May 2019</td>
-                                            <td>$214</td>
-                                            <td><span class="badge badge-danger">Declined</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>#6791699</td>
-                                            <td class="name"><img src="assets/img/user4.jpg" alt="image"> Jude Law</td>
-                                            <td>09 May 2019</td>
-                                            <td>$120</td>
-                                            <td><span class="badge badge-success">Pending</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>#6791647</td>
-                                            <td class="name"><img src="assets/img/user5.jpg" alt="image"> Idris Elba</td>
-                                            <td>08 May 2019</td>
-                                            <td>$999</td>
-                                            <td><span class="badge badge-primary">Received</span></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-5 col-md-12">
-                    <div class="card mb-30">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3>Revenue Growth</h3>
-
-                            <div class="dropdown">
-                                <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class='bx bx-dots-horizontal-rounded' ></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-show'></i> View
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-edit-alt'></i> Edit
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-trash'></i> Delete
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-printer'></i> Print
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-download'></i> Download
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-body">
-                            <div id="revenue-growth-chart" class="extra-margin"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <!-- End -->
-
-            <!-- Start -->
-            <div class="row">
-                <div class="col-lg-4 col-md-12">
-                    <div class="card mb-30 social-marketing-box">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3>Sales By Social Source</h3>
-
-                            <div class="dropdown">
-                                <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class='bx bx-dots-horizontal-rounded' ></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-show'></i> View
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-edit-alt'></i> Edit
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-trash'></i> Delete
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-printer'></i> Print
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-download'></i> Download
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-body">
-                            <div class="list">
-                                <div class="icon facebook">
-                                    <i class='bx bxl-facebook'></i>
-                                </div>
-                                <h4 class="mb-1"><a href="#" class="d-inline-block">Facebook Ads</a></h4>
-                                <p class="mb-0">5.5k Sale - 5.2k Like</p>
-                                <div class="stats">
-                                    <i class='bx bx-trending-up text-success'></i>
-                                    50%
-                                </div>
-                            </div>
-
-                            <div class="list">
-                                <div class="icon twitter">
-                                    <i class='bx bxl-twitter'></i>
-                                </div>
-                                <h4 class="mb-1"><a href="#" class="d-inline-block">Twitter Ads</a></h4>
-                                <p class="mb-0">5.3k Sale - 4.9k Like</p>
-                                <div class="stats">
-                                    <i class='bx bx-trending-up text-success'></i>
-                                    20%
-                                </div>
-                            </div>
-
-                            <div class="list">
-                                <div class="icon instagram">
-                                    <i class='bx bxl-instagram'></i>
-                                </div>
-                                <h4 class="mb-1"><a href="#" class="d-inline-block">Instagram Ads</a></h4>
-                                <p class="mb-0">5.1k Sale - 4.6k Like</p>
-                                <div class="stats">
-                                    <i class='bx bx-trending-down text-danger'></i>
-                                    88%
-                                </div>
-                            </div>
-
-                            <div class="list">
-                                <div class="icon linkedin">
-                                    <i class='bx bxl-linkedin'></i>
-                                </div>
-                                <h4 class="mb-1"><a href="#" class="d-inline-block">Linkedin Ads</a></h4>
-                                <p class="mb-0">5.5k Sale - 5.2k Like</p>
-                                <div class="stats">
-                                    <i class='bx bx-trending-up text-success'></i>
-                                    54%
-                                </div>
-                            </div>
-
-                            <div class="list">
-                                <div class="icon youtube">
-                                    <i class='bx bxl-youtube'></i>
-                                </div>
-                                <h4 class="mb-1"><a href="#" class="d-inline-block">Youtube Ads</a></h4>
-                                <p class="mb-0">5.3k Sale - 4.9k Like</p>
-                                <div class="stats">
-                                    <i class='bx bx-trending-up text-success'></i>
-                                    70%
-                                </div>
-                            </div>
-
-                            <div class="list">
-                                <div class="icon github">
-                                    <i class='bx bxl-github'></i>
-                                </div>
-                                <h4 class="mb-1"><a href="#" class="d-inline-block">GitHub Ads</a></h4>
-                                <p class="mb-0">5.1k Sale - 4.6k Like</p>
-                                <div class="stats">
-                                    <i class='bx bx-trending-down text-danger'></i>
-                                    30%
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-12">
-                    <div class="card mb-30 new-customer-box">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3>New Customers</h3>
-
-                            <div class="dropdown">
-                                <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class='bx bx-dots-horizontal-rounded' ></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-show'></i> View
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-edit-alt'></i> Edit
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-trash'></i> Delete
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-printer'></i> Print
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-download'></i> Download
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        <tr>
-                                            <td class="name"><img src="assets/img/user1.jpg" alt="image"> Atony Rony</td>
-                                            <td>
-                                                <a href="#" class="d-inline-block text-warning mr-2" data-toggle="tooltip" data-placement="top" title="hello@tomhardy.com"><i class='bx bx-envelope'></i></a>
-                                                <a href="#" class="d-inline-block text-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"><i class='bx bx-edit'></i></a>
-                                                <a href="#" class="d-inline-block text-danger" data-toggle="tooltip" data-placement="top" title="Delete"><i class='bx bx-trash'></i></a>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="name"><img src="assets/img/user2.jpg" alt="image"> Tom Hardy</td>
-                                            <td>
-                                                <a href="#" class="d-inline-block text-warning mr-2" data-toggle="tooltip" data-placement="top" title="hello@tomhardy.com"><i class='bx bx-envelope'></i></a>
-                                                <a href="#" class="d-inline-block text-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"><i class='bx bx-edit'></i></a>
-                                                <a href="#" class="d-inline-block text-danger" data-toggle="tooltip" data-placement="top" title="Delete"><i class='bx bx-trash'></i></a>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="name"><img src="assets/img/user3.jpg" alt="image"> Colin Firth</td>
-                                            <td>
-                                                <a href="#" class="d-inline-block text-warning mr-2" data-toggle="tooltip" data-placement="top" title="hello@colinfirth.com"><i class='bx bx-envelope'></i></a>
-                                                <a href="#" class="d-inline-block text-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"><i class='bx bx-edit'></i></a>
-                                                <a href="#" class="d-inline-block text-danger" data-toggle="tooltip" data-placement="top" title="Delete"><i class='bx bx-trash'></i></a>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="name"><img src="assets/img/user4.jpg" alt="image"> Jude Law</td>
-                                            <td>
-                                                <a href="#" class="d-inline-block text-warning mr-2" data-toggle="tooltip" data-placement="top" title="hello@judelaw.com"><i class='bx bx-envelope'></i></a>
-                                                <a href="#" class="d-inline-block text-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"><i class='bx bx-edit'></i></a>
-                                                <a href="#" class="d-inline-block text-danger" data-toggle="tooltip" data-placement="top" title="Delete"><i class='bx bx-trash'></i></a>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="name"><img src="assets/img/user5.jpg" alt="image"> Idris Elba</td>
-                                            <td>
-                                                <a href="#" class="d-inline-block text-warning mr-2" data-toggle="tooltip" data-placement="top" title="hello@idriselba.com"><i class='bx bx-envelope'></i></a>
-                                                <a href="#" class="d-inline-block text-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"><i class='bx bx-edit'></i></a>
-                                                <a href="#" class="d-inline-block text-danger" data-toggle="tooltip" data-placement="top" title="Delete"><i class='bx bx-trash'></i></a>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="name"><img src="assets/img/user1.jpg" alt="image"> Atony Rony</td>
-                                            <td>
-                                                <a href="#" class="d-inline-block text-warning mr-2" data-toggle="tooltip" data-placement="top" title="hello@tomhardy.com"><i class='bx bx-envelope'></i></a>
-                                                <a href="#" class="d-inline-block text-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"><i class='bx bx-edit'></i></a>
-                                                <a href="#" class="d-inline-block text-danger" data-toggle="tooltip" data-placement="top" title="Delete"><i class='bx bx-trash'></i></a>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-12">
-                    <div class="card top-rated-product-box mb-30">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3>Top Rated Products</h3>
-
-                            <div class="dropdown">
-                                <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class='bx bx-dots-horizontal-rounded' ></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-show'></i> View
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-edit-alt'></i> Edit
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-trash'></i> Delete
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-printer'></i> Print
-                                    </a>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class='bx bx-download'></i> Download
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-body">
-                            <ul>
-                                <li class="single-product">
-                                    <a href="#" class="image d-inline-block">
-                                        <img src="assets/img/product1.jpg" alt="image">
-                                    </a>
-                                    <h4 class="mb-2"><a href="#" class="d-inline-block">Macbook Pro</a></h4>
-                                    <p class="mb-2">There are many variations of...</p>
-                                    <div class="price mr-2 d-inline-block">$1999</div>
-                                    <div class="rating d-inline-block">
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                    </div>
-                                    <a href="#" class="view-link d-inline-block" data-toggle="tooltip" data-placement="top" title="View Details"><i class='bx bxs-arrow-to-right'></i></a>
-                                </li>
-
-                                <li class="single-product">
-                                    <a href="#" class="image d-inline-block">
-                                        <img src="assets/img/product2.jpg" alt="image">
-                                    </a>
-                                    <h4 class="mb-2"><a href="#" class="d-inline-block">iPhone 11 pro</a></h4>
-                                    <p class="mb-2">There are many variations of...</p>
-                                    <div class="price mr-2 d-inline-block">$999</div>
-                                    <div class="rating d-inline-block">
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                    </div>
-                                    <a href="#" class="view-link d-inline-block" data-toggle="tooltip" data-placement="top" title="View Details"><i class='bx bxs-arrow-to-right'></i></a>
-                                </li>
-
-                                <li class="single-product">
-                                    <a href="#" class="image d-inline-block">
-                                        <img src="assets/img/product3.jpg" alt="image">
-                                    </a>
-                                    <h4 class="mb-2"><a href="#" class="d-inline-block">HeadPhone</a></h4>
-                                    <p class="mb-2">There are many variations of...</p>
-                                    <div class="price mr-2 d-inline-block">$499</div>
-                                    <div class="rating d-inline-block">
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                    </div>
-                                    <a href="#" class="view-link d-inline-block" data-toggle="tooltip" data-placement="top" title="View Details"><i class='bx bxs-arrow-to-right'></i></a>
-                                </li>
-
-                                <li class="single-product">
-                                    <a href="#" class="image d-inline-block">
-                                        <img src="assets/img/product4.jpg" alt="image">
-                                    </a>
-                                    <h4 class="mb-2"><a href="#" class="d-inline-block">Superstar Shoes</a></h4>
-                                    <p class="mb-2">There are many variations of...</p>
-                                    <div class="price mr-2 d-inline-block">$80</div>
-                                    <div class="rating d-inline-block">
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                        <i class='bx bxs-star'></i>
-                                    </div>
-                                    <a href="#" class="view-link d-inline-block" data-toggle="tooltip" data-placement="top" title="View Details"><i class='bx bxs-arrow-to-right'></i></a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End -->
-
+            
             <!-- Start Footer End -->
-            <footer class="footer-area">
+            <footer class="footer-area" [hidden]="loading">
                 <div class="row align-items-center">
                     <div class="col-lg-6 col-sm-6 col-md-6">
-                        <p>Copyright <i class='bx bx-copyright'></i> 2020 <a href="#">Olaf</a>. All rights reserved</p>
+                        <p>Copyright <i class='bx bx-copyright'></i> 2024 <a href="/home">AssistLine</a></p>
                     </div>
 
-                    <div class="col-lg-6 col-sm-6 col-md-6 text-right">
-                        <p>Designed by ❤️ <a href="https://envytheme.com/" target="_blank">EnvyTheme</a></p>
-                    </div>
                 </div>
             </footer>
             <!-- End Footer End -->
-
+</div>
         </div>
         <!-- End Main Content Wrapper Area -->
         

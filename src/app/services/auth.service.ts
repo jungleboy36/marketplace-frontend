@@ -104,8 +104,8 @@ import { environment } from 'src/environments/environment';
           this.loadingSubject.next(false); 
           Swal.fire({
             icon: 'error',
-            title: 'Login Failed',
-            text: 'Incorrect email or password. Please try again.',
+            title: 'Échec de la connexion',
+            text: 'E-mail ou mot de passe incorrect. Veuillez réessayer.',
             confirmButtonText: 'OK'
           });
         })

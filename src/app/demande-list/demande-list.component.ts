@@ -384,6 +384,15 @@ applyFilter() {
   if(this.filterCloseButton){
     this.filterCloseButton.nativeElement.click();
   }
+  if(this.searchQuery != ''){
+    this.filteredDemandes = this.filteredDemandes.filter(demande =>
+      
+        demande.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        demande.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+
+      
+    );
+  }
 }
 
 

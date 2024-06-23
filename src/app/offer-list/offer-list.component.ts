@@ -566,16 +566,26 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   applyFilter() {
     console.log('apply filter triggered!!');
     if (this.searchQuery === '') {
+      if(this.searchedOffers.length > 0)
       this.filteredOffers = this.searchedOffers;
+    else
+    this.filteredOffers = this.offers;
     }
     else{
+      if(this.searchedOffers.length > 0)
     // Apply search query filter on filteredOffers
     this.filteredOffers = this.searchedOffers.filter(offer =>
-      offer.depart_date.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.arrival_date.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+      offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
       offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
   
     );
+    else{
+      this.filteredOffers = this.offers.filter(offer =>
+        offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );  
+    }
+
   }
   }
 

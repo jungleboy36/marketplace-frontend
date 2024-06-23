@@ -284,13 +284,16 @@ export class ListOffersVisitorComponent implements OnInit {
   applyFilter() {
     console.log('apply filter triggered!!');
     if (this.searchQuery === '') {
-      this.filteredOffers = this.searchedOffers;
+      if(this.searchedOffers.length > 0)
+        this.filteredOffers = this.searchedOffers;
+      else
+      this.filteredOffers = this.offers;
     }
     else{
     // Apply search query filter on filteredOffers
     this.filteredOffers = this.searchedOffers.filter(offer =>
-      offer.depart_date.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.arrival_date.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+     
+      offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
       offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
   
     );

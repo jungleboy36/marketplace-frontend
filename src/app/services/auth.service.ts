@@ -253,7 +253,10 @@ import { environment } from 'src/environments/environment';
   }
 
   getNotifications(userId: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}notifications/?user_id=${userId}`);
+    //return this.http.get<any>(`${this.apiUrl}notifications/?user_id=${userId}`);
+    return Observable.create((observer: { next: (arg0: string) => void; complete: () => void; }) => {
+      observer.next('success');
+      observer.complete();});
   }
   markAllNotificationsAsRead(userId : string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}notifications/mark-all-as-read/?user_id=${userId}`, {});

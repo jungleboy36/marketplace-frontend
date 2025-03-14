@@ -41,6 +41,19 @@ export class EditOfferComponent implements AfterViewInit{
   });
   }
   offer! : any ;
+  newOffer: any = {
+    user_id: '',
+    depart_date_start: '',
+    depart_date_end: '',
+    destination_date_start: '',
+    destination_date_end: '',
+    origin:undefined,
+    destination :undefined,
+    route: '',
+    volume: 0,
+    prix:0,
+  };
+
   ngOnInit(): void {
     const offerId = this.route.snapshot.paramMap.get('id');
     console.log("edit offer id : ",offerId);

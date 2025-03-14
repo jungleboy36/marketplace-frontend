@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, Renderer2 } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, Renderer2, NgZone } from '@angular/core';
 import { OfferService } from '../services/offer.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
@@ -7,15 +7,17 @@ import { AuthService } from '../services/auth.service';
 import { DatePipe, JsonPipe } from '@angular/common';
 import { ChatService } from '../services/chat.service';
 import * as $ from 'jquery';
-import * as L from 'leaflet';
-import 'leaflet-routing-machine';
-import * as LCG from 'leaflet-control-geocoder';
-import * as turf from '@turf/turf';
-import Pusher from 'pusher-js';
+import 'jquery-ui/ui/widgets/slider'; // Import the slider widget explicitly
+import * as noUiSlider from 'nouislider';
 
-class NoMarkerPlan extends L.Routing.Plan {
-  createMarker(i: number, waypoint: L.Routing.Waypoint, n: number): L.Marker | null {
-      return null; // Prevent marker creation
+import Pusher from 'pusher-js';
+import { MapService } from '../services/map.service';
+import { map, take } from 'rxjs/operators';
+
+declare global {
+  interface JQuery {
+    slider(options?: any): JQuery;
+    slider(method: string, param1?: any, param2?: any): any;
   }
 }
 
@@ -24,13 +26,21 @@ class NoMarkerPlan extends L.Routing.Plan {
   templateUrl: './offer-list.component.html',
   styleUrls: ['./offer-list.component.html'],
 })
+
+
 export class OfferListComponent implements OnInit, AfterViewInit {
-  departStartDate: Date | null = null;
+  
+  minEndDate1: Date = new Date() ;
+  minEndDate2: Date = new Date() ;
+  minEndDate3: Date = new Date() ;
+
+  departStartDate: Date | string | null = new Date();
   departEndDate: Date | null = null;
   destinationStartDate: Date | null = null;
   destinationEndDate: Date | null = null;
   searchedOffers:any[] = [];
   isAdding: boolean = false;
+  isUpdating: boolean = false;
   departSearch : string ='';
   destinationSearch : string ='';
   filterLoading : boolean= false;
@@ -39,10 +49,6 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   selectedDateRange: any ;
   offerMap : any;
   itinerary: string = '';
-  originPin: L.Marker | undefined;
-  destinationPin: L.Marker | undefined;
-  routeControl: L.Routing.Control | undefined;
-  routeLayer: any;
   mapLoading : boolean = false;
   allFieldsFilled: boolean = false;
   public offers: any[] = [];
@@ -54,41 +60,60 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   filterOption: string = 'all';
   newOffer: any = {
     user_id: '',
-    title: '',
-    description: '',
-    depart_date: '',
-    arrival_date: '',
-    origin:'',
-    destination :'',
-    originMap : '',
-    destinationMap : '',
-    route: null,
-    picture  : localStorage.getItem('profileImageUrl')
+    depart_date_start: '',
+    depart_date_end: '',
+    destination_date_start: '',
+    destination_date_end: '',
+    origin:undefined,
+    destination :undefined,
+    route: '',
+    volume: 0,
+    prix:0,
   };
-
+  filter: any = {
+  
+    depart_date_start: '',
+    depart_date_end: '',
+    destination_date_start: '',
+    destination_date_end: '',
+    origin:undefined,
+    destination :undefined,
+    route: '',
+    volume: 0,
+    prix:0,
+  };
+  volumeMin: number = 0;
+  volumeMax: number = 1000;
+  priceMin: number = 0;
+  priceMax: number = 5000;
+  updateOffer: any = {
+    user_id: '',
+    depart_date_start: '',
+    depart_date_end: '',
+    destination_date_start: '',
+    destination_date_end: '',
+    origin:undefined,
+    destination :undefined,
+    route: '',
+    volume: 0,
+    prix:0,
+  };
   offerForm!: FormGroup;
   @ViewChild('cancelButton') cancelButton: ElementRef | undefined;
   @ViewChild('addOfferModal') addOfferModalButton: ElementRef | undefined;
   @ViewChild('filterClose') filterCloseButton: ElementRef | undefined;
+  @ViewChild('updateOfferModal') updateCloseButton: ElementRef | undefined;
 
-  offerDetails: any = {
-    title: '',
-    description: '',
-    depart_date: '',
-    arrival_date: '',
-    itinerary: '',
-    volume: '',
-    price: '',
-    user_id: '',
-    username: '',
-    picture : '',
-  };
+
   loading: boolean = true;
   public role: string | null = null;
   minDate: string;
   nb : number = 0;
   customIcon:any;
   offersChannel: any;
+  displayRegions$ = this.mapService.displayRegions$;
+  selectedRegion$ = this.mapService.selectedRegions$;
+  selectedFilterRegion$ = this.mapService.selectedFilterRegions$;
   constructor(
     private offerService: OfferService,
     private router: Router,
@@ -97,27 +122,55 @@ export class OfferListComponent implements OnInit, AfterViewInit {
     private datePipe: DatePipe,
     private chatService: ChatService,
     private renderer: Renderer2,
+    private ngZone: NgZone,
+    public mapService: MapService
     
   ) {
+    this.departStartDate = this.datePipe.transform(this.departStartDate, 'dd-MM-yyyy');
     this.minDate = this.offerService.getMinDate();
     this.offerForm = this.formBuilder.group({
-      title: ['', Validators.required],
-      description: ['', Validators.required],
-      depart_date: ['', Validators.required],
-      arrival_date: ['', Validators.required],
+      depart_date_start: ['', Validators.required],
+      depart_date_end: [''],
+      arrival_date_start: ['', Validators.required],
+      arrival_date_end: [''],
       origin: ['', Validators.required],
-      destination: ['', Validators.required]
+      destination: ['', Validators.required],
+      volume: ['', Validators.required],
+      prix: ['', Validators.required],
       // Add other form controls here
   });
   }
 
   ngOnInit(): void {
+    //-----JS for Price Range slider-----
+
+$(function() {
+	$( "#slider-range").slider({
+	  range: true,
+	  min: 100,
+	  max: 5000,
+	  values: [ 100, 5000 ],
+	  slide: function( event : any, ui : any ) {
+		$( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+	  }
+	});
+	(($( "#amount" ).val( "$" + $( "#slider-range" ))as any).slider( "values", 0 ) +
+	  (" - $" + $( "#slider-range" )as any).slider( "values", 1 ) );
+});
+    this.selectedRegion$.subscribe((regions) => {
+      if(regions.length > 0){
+     this.newOffer.origin= regions[0].id
+     if(regions.length > 1){
+    this.newOffer.destination = regions[regions.length-1].id;}}})
+        console.log(this.selectedFilterRegion$);
+    this.selectedFilterRegion$.subscribe((regions) => {
+      if(regions.length > 0){
+     this.filter.origin= regions[0].id
+     if(regions.length > 1){
+    this.filter.destination = regions[regions.length-1].id;}}})
+    console.log(this.displayRegions$)
     this.loadOffers();
-    this.initializeOfferMap();
-    this.map = L.map('map').setView([48.8566, 2.3522], 7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(this.map);
+  
     const pusher = new Pusher('1c26d2cd463b15a19666', {
       cluster: 'eu',
     });
@@ -127,228 +180,62 @@ export class OfferListComponent implements OnInit, AfterViewInit {
         this.loadOffers();
       }, 3000); 
     });
-    this.customIcon = L.icon({
-      iconUrl: 'assets/img/marker-icon.png', // Path to your custom icon image
-      iconSize: [25, 41], // Size of the icon [width, height]
-      iconAnchor: [12, 41], // Anchor point of the icon [x, y]
-      popupAnchor: [0, -41] // Anchor point of the popup relative to the icon [x, y]
-  });
   
-    this.routeLayer = L.layerGroup().addTo(this.map);
-    const originInput = document.getElementById('origin') as HTMLInputElement;
-    const destinationInput = document.getElementById('destination') as HTMLInputElement;
-    const originSuggestions = document.getElementById('origin-suggestions') as HTMLUListElement;
-    const destinationSuggestions = document.getElementById('destination-suggestions') as HTMLUListElement;
-    const destinationSearch = document.getElementById('destinationSearch') as HTMLInputElement;
-    const departSearch = document.getElementById('departSearch') as HTMLInputElement;
-    const destinationSearchSuggestions = document.getElementById('destinationSearch-suggestions') as HTMLUListElement;
-    const departSearchSuggestions = document.getElementById('departSearch-suggestions') as HTMLUListElement;
 
 
-    this.map.on('click', (e: any) => {
-      console.log("map clicked !");
-      if (!this.originPin) {
-        this.originPin = L.marker(e.latlng ,{draggable: true,icon:this.customIcon} ).addTo(this.map);
-       this.reverseGeocode(this.originPin.getLatLng(),originInput);
-       
-      } else if (!this.destinationPin) {
-        this.destinationPin = L.marker(e.latlng ,{draggable: true,icon:this.customIcon}).addTo(this.map);
-        this.reverseGeocode(this.destinationPin.getLatLng(),destinationInput);
-      }
-      // Check if both pins are placed
-      if (this.originPin && this.destinationPin && (this.nb ==0)) {
-        this.nb = 1;
-        this.updateRoute();
-        
-      }
-      this.originPin!.on('dragend',(e:any)=>{
-        this.reverseGeocode(this.originPin!.getLatLng(),originInput);
-        this.updateRoute();
-      });
-      this.destinationPin!.on('dragend',()=>{
-        this.reverseGeocode(this.destinationPin!.getLatLng(),destinationInput);
-        this.updateRoute();
-      });
-    });
-    
-    const geocoder = LCG.geocoder({
-      defaultMarkGeocode: false,
-      geocoder: new (L.Control as any).Geocoder.Nominatim({
-        geocodingQueryParams: {
-          countrycodes: 'fr',  },
-      }),
-    });
 
-    const showSuggestions = (query: string, suggestionsElement: HTMLUListElement, inputElement: HTMLInputElement) => {
-      geocoder.options.geocoder!.geocode(query, (results) => {
-        suggestionsElement.innerHTML = '';
-        results.forEach(result => {
-          const suggestionItem = document.createElement('li');
-          suggestionItem.classList.add('list-group-item');
-          suggestionItem.textContent = result.name;
-          suggestionItem.addEventListener('click', () => {
-            inputElement.value = result.name;
-            suggestionsElement.innerHTML = '';
-            if (inputElement.id === 'origin') {
-              if (this.originPin) {
 
-                this.map.removeLayer(this.originPin);
-               
-              }
-              this.originPin = L.marker(result.center,{draggable : true,icon:this.customIcon}).addTo(this.map);
-              this.offerForm.controls['origin'].setValue(result.name);
-              this.offerForm.controls['origin'].updateValueAndValidity();
-              this.originPin.on('dragend', () => {
-                this.reverseGeocode(this.originPin!.getLatLng(), originInput);
-                this.updateRoute();
-              });
-              console.log('originPin: ',this.originPin);
-              this.map.setView(result.center, this.map.getZoom());
-            } else if (inputElement.id === 'destination') {
-              if (this.destinationPin) {
-      
-                this.map.removeLayer(this.destinationPin);
-               
-              }
-              this.destinationPin = L.marker(result.center ,{draggable : true,icon:this.customIcon}).addTo(this.map);
-              this.offerForm.controls['destination'].setValue(result.name);
-              this.offerForm.controls['destination'].updateValueAndValidity();
-              this.destinationPin.on('dragend', () => {
-                this.reverseGeocode(this.destinationPin!.getLatLng(), destinationInput);
-                this.updateRoute();
-              });
-              this.map.setView(result.center, this.map.getZoom());
-              
-            }
-            this.updateRoute();
-          });
-          suggestionsElement.appendChild(suggestionItem);
+
+  }
+
+  ngAfterViewInit() {
+    // Initialize Volume Slider
+    const volumeSlider = document.getElementById('volume-slider');
+    if (volumeSlider) {
+      noUiSlider.create(volumeSlider, {
+        start: [this.volumeMin, this.volumeMax],
+        connect: true,
+        range: {
+          min: 0,
+          max: 1000
+        },
+        step: 1
+      }).on('update', (values: (string | number)[], handle: number, unencoded?: number[]) => {
+        this.ngZone.run(() => {
+          const val = Math.round(+values[handle]);
+          if (handle === 0) {
+            this.volumeMin = val;
+          } else {
+            this.volumeMax = val;
+          }
         });
       });
-    };
+    }
 
-    originInput.addEventListener('keyup', (event) => {
-  
-      const query = (event.target as HTMLInputElement).value;
-      if (query.length > 2) {
-        showSuggestions(query, originSuggestions, originInput);
-      } else {
-        originSuggestions.innerHTML = '';
-      }
-    });
-
-    destinationInput.addEventListener('keyup', (event) => {
-   
-      const query = (event.target as HTMLInputElement).value;
-      if (query.length > 2) {
-        showSuggestions(query, destinationSuggestions, destinationInput);
-      } else {
-        destinationSuggestions.innerHTML = '';
-      }
-    });
-
-
-   
-    destinationSearch.addEventListener('keyup', (event) => {
-   
-      const query = (event.target as HTMLInputElement).value;
-      if (query.length > 2) {
-        showSuggestions(query, destinationSearchSuggestions, destinationSearch);
-      } else {
-        destinationSearchSuggestions.innerHTML = '';
-      }
-    });
-
-   
-    departSearch.addEventListener('keyup', (event) => {
-   
-      const query = (event.target as HTMLInputElement).value;
-      if (query.length > 2) {
-        showSuggestions(query, departSearchSuggestions, departSearch);
-      } else {
-        departSearchSuggestions.innerHTML = '';
-      }
-    });
-
-
-  }
-
-  ngAfterViewInit(): void {
-   
-
-  }
-
-
-  updateRoute(): void {
-    if (this.originPin && this.destinationPin) {
-      const originLatLng = this.originPin.getLatLng();
-      const destinationLatLng = this.destinationPin.getLatLng();
-  
-      // Ensure the coordinates are within the valid range
-      if (this.isValidCoordinate(originLatLng) && this.isValidCoordinate(destinationLatLng)) {
-        if (this.routeControl) {
-          this.map.removeControl(this.routeControl);
-        }
-  
-        // Remove the existing markers from the map to avoid duplication
-        this.map.removeLayer(this.originPin);
-        this.map.removeLayer(this.destinationPin);
-        const noMarkerPlan = new NoMarkerPlan([originLatLng, destinationLatLng], {
-          createMarker: () => false // This prevents waypoint markers from being displayed
+    // Initialize Price Slider
+    const priceSlider = document.getElementById('price-slider');
+    if (priceSlider) {
+      noUiSlider.create(priceSlider, {
+        start: [this.priceMin, this.priceMax],
+        connect: true,
+        range: {
+          min: 0,
+          max: 5000
+        },
+        step: 10
+      }).on('update', (values: (string | number)[], handle: number, unencoded?: number[]) => {
+        this.ngZone.run(() => {
+          const val = Math.round(+values[handle]);
+          if (handle === 0) {
+            this.priceMin = val;
+          } else {
+            this.priceMax = val;
+          }
+        });
       });
-
-
-        this.routeControl = L.Routing.control({
-          waypoints: [
-            originLatLng,
-            destinationLatLng,
-          ],
-          plan: noMarkerPlan,
-          routeWhileDragging: true,
-          
-          router: new L.Routing.OSRMv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1'
-          }),
-         
-        }).on('routingerror', function (e) {
-          console.error('Routing error: ', e);
-          alert('Routing error: ' + e.message);
-        }).on('routesfound', (e) => {
-          const routes = e.routes;
-          const route = routes[0]; // Assuming we take the first route
-          this.newOffer.route = JSON.stringify(route) ;
-          console.log("route: ", route);
-          // Save the route data
-         
-        }).addTo(this.map);
-        $('.leaflet-routing-alternatives-container').remove();
-        // Re-add the existing markers to the map
-        this.originPin.addTo(this.map);
-
-        this.destinationPin.addTo(this.map);
-        const bounds = new L.LatLngBounds(originLatLng, destinationLatLng);
-        this.map.fitBounds(bounds, { padding: [20, 20] });
-        $('.leaflet-routing-alternatives-container').remove();
-
-      } else {
-        alert("assurez-vous de placer les épingles à l'intérieur de la france");
-      }
     }
   }
-  
 
-  isValidCoordinate(latlng: L.LatLng): boolean {
-    const lat = latlng.lat;
-    const lng = latlng.lng;
-    
-    // France's approximate geographical bounds
-    const minLat = 42.0;
-    const maxLat = 51.0;
-    const minLng = -5.0;
-    const maxLng = 8.0;
-    
-    return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
-  }
 
   clickCancelButton() {
     if (this.cancelButton) {
@@ -362,7 +249,9 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   }
 
   closeAddOfferModal() {
-    this.showAddOfferModal = false;
+    if (this.cancelButton) {
+      this.cancelButton.nativeElement.click();
+    }
   }
   loadOffers() {
     const cachedOffers = localStorage.getItem('cachedOffers');
@@ -376,23 +265,16 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   
     this.offerService.getOffers().subscribe(
       (offers: any[]) => {
-        this.offers = offers.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
-        this.filteredOffers = [...this.offers];
-        this.filteredOffers.forEach(offer=>{
-          offer.depart_date = JSON.parse(offer.depart_date);
-          offer.arrival_date = JSON.parse(offer.arrival_date);
-        });
+        this.offers = offers.sort((a, b) => new Date(b.creation_date).getTime() - new Date(a.creation_date).getTime());
+        console.log(offers);
         //localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
-        this.offers = JSON.parse(localStorage.getItem('cachedOffers')!);
-        this.filteredOffers = [...this.offers];
         this.loading = false;
-      this.applyFilter();
-      this.applySmartSearch(this.departSearch,this.destinationSearch);
+        this.filteredOffers = [...this.offers];
       },
       
       (error) => {
-        this.errorMessage = 'Error fetching offers: ' + error.message;
-        this.loading = false;
+       // this.errorMessage = 'Error fetching offers: ' + error.message;
+       // this.loading = false;
       }
     );
   }
@@ -405,16 +287,34 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   }
 
   deleteOffer(id: string) {
+    Swal.fire({
+      title: 'Voulez-vous vraiment supprimer cette offre?',
+      text: "Cette action est irréversible!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Oui, supprimer!',
+      cancelButtonText: 'Annuler'
+    }).then((result) => {
+      if (result.isConfirmed) {
+     
     this.offerService.deleteOffer(id).subscribe(
       () => {
-        this.offers = this.offers.filter(offer => offer.id !== id);
-        this.filteredOffers = [...this.offers];
-        localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
+       Swal.fire({
+        title: 'Offre supprimée avec succès',
+        icon: 'success',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+        this.loadOffers();
       },
       (error) => {
         console.error('Error deleting offer:', error);
       }
-    );
+    );}
+    });
+  
   }
 
   goToEditOffer(id: string) {
@@ -422,139 +322,81 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   }
 
   addOffer() {
+    this.isAdding = true;
     if (this.offerForm.valid) {
-      this.newOffer.user_id = this.authService.getUserId();
+      const d1 = document.getElementById('departStartDate') as HTMLInputElement;
+      const d2 = document.getElementById('departEndDate') as HTMLInputElement;
+      const d3 = document.getElementById('destinationStartDate') as HTMLInputElement;
+      const d4 = document.getElementById('destinationEndDate') as HTMLInputElement;
+     // Ensures min updates dynamically
+     console.log(d2)
+      this.newOffer.depart_date_start = (new Date(d1.value)).toISOString().split('T')[0];
+      this.newOffer.destination_date_start = (new Date(d3.value)).toISOString().split('T')[0];
       
-      this.isAdding = true; 
-      const departDate = new Date(this.offerForm.get('depart_date')!.value);
-      const arrivalDate = new Date(this.offerForm.get('arrival_date')!.value);
-  
-      if (departDate > arrivalDate) {
-        Swal.fire({
-          icon: 'error',
-          title: 'La date de départ doit être antérieure ou égale à la date d\'arrivée.',
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        this.isAdding = false;
-        return;
-      }
-      if (this.originPin && this.destinationPin) {
-        this.newOffer.originMap = JSON.stringify(this.originPin.getLatLng());
-        this.newOffer.destinationMap = JSON.stringify(this.destinationPin.getLatLng());
-      } else {
-        // Handle case where origin or destination pins are not set
-        Swal.fire({
-          icon: 'error',
-          title: 'Veuillez indiquer le point de départ et la destination sur la carte.',
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        this.isAdding = false;
-
-        return;
-      }
-      console.log("new offer : ",this.newOffer);
-      this.newOffer.depart_date = JSON.stringify(this.newOffer.depart_date);
-      this.newOffer.arrival_date = JSON.stringify(this.newOffer.arrival_date);
-
-      this.offerService.addOffer(this.newOffer).subscribe(
-        (response) => {
-          console.log("response from add offer : ",response);
-          Swal.fire({
-            icon: 'success',
-            title: 'Offre ajouté !',
-            showConfirmButton: false,
-            timer: 800,
-          });
-          this.offerForm.reset();
-          this.clickCancelButton();
-          this.isAdding = false; 
-          response.picture = localStorage.getItem('profileImageUrl');
-          response.username = this.authService.getDisplayName();
-          this.offers.unshift(response);
-          this.filteredOffers = [...this.offers];
-          localStorage.setItem('cachedOffers', JSON.stringify(this.offers));
-        },
-        (error) => {
-          this.errorMessage = error;
-          Swal.fire({
-            icon: 'error',
-            title: "Erreur lors de l'ajout du l'offre",
-            showConfirmButton: false,
-            timer: 800,
-          });
-          this.isAdding = false; 
-
-        }
-      );
-    }
+       this.newOffer.depart_date_end = d2 && d2.value? (new Date(d2.value)).toISOString().split('T')[0] : null;
+      this.newOffer.destination_date_end = d4 && d4.value ? (new Date(d4.value)).toISOString().split('T')[0] : null;
+      this.newOffer.user_id = 1;
+      this.selectedRegion$.pipe(
+        map(regions => regions.map(region => region.id).join(','))
+      ).subscribe(routeString => {
+        this.newOffer.route = routeString;
+      });
+      
+  }
+  console.log(this.newOffer);
+  this.newOffer.origin= this.newOffer.origin.length >1 ? this.newOffer.origin : "0"+this.newOffer.origin;
+  this.newOffer.destination= this.newOffer.destination.length >1 ? this.newOffer.destination : "0"+this.newOffer.destination;
+  this.offerService.addOffer(this.newOffer).subscribe(
+     (response)=>{
+  this.isAdding = false;
+  this.closeAddOfferModal();
+  Swal.fire({
+    title: 'Offre ajoutée avec succès',
+    icon: 'success',
+    showConfirmButton: false,
+    timer: 1500,
+  });
+this.loadOffers();},
+  (error)=>{
+    this.isAdding = false;
+    Swal.fire({
+      title: 'Erreur lors de l\'ajout de l\'offre',
+      icon: 'error',
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }
+  );
+}
+openInfoModal(offerId: number) {
+  $('.info-map .land.selected').removeClass('selected');
+  this.mapLoading = true;
+  const offer = this.offers.find(offer => offer.id_offre === offerId);
+  console.log("offer Id: ",offerId);
+  if (!offer || !offer.route) {
+    console.error("Offer not found or route is missing.");
+    return;
   }
 
-  openInfoModal(offerId: string) {
-    this.mapLoading = true;
+  const departmentIds = offer.route.split(',').map(String);
+  console.log("departmentIds:", departmentIds);
+  
+setTimeout(() => {
+  departmentIds.forEach((deptId: { toString: () => string; }, index: number) => {
     setTimeout(() => {
-      this.offerMap.invalidateSize();
-    }, 500);
-  
-    this.offerService.getOfferById(offerId).subscribe(
-      (offerDetails: any) => {
-        this.offerDetails = offerDetails;
-        const originLatLng = JSON.parse(offerDetails.originMap);
-        const destinationLatLng = JSON.parse(offerDetails.destinationMap);
-        
-        // Remove existing layers except tile layer
-        this.offerMap.eachLayer((layer: any) => {
-          if (!(layer instanceof L.TileLayer)) {
-            this.offerMap.removeLayer(layer);
-          }
+      console.log("Selecting region:", deptId.toString());
+      this.mapService.selectRegion2(deptId.toString());
 
-        });
-        L.marker(originLatLng, {draggable : false,icon:this.customIcon}).addTo(this.offerMap);
-        L.marker(destinationLatLng, {draggable : false,icon:this.customIcon}).addTo(this.offerMap);
-        const bounds = new L.LatLngBounds(originLatLng, destinationLatLng);
-        this.offerMap.fitBounds(bounds, { padding: [5, 5] });
-     
-        // Check and parse route coordinates
-        const route = this.offerDetails.route;
-        if (!route) {
-          console.error('Route data is missing in offer details');
-          return;
-        }
-  
-        let coordinates;
-        try {
-          coordinates = JSON.parse(route).coordinates.map((coord: any) => L.latLng(coord.lat, coord.lng));
-        } catch (error) {
-          console.error('Error parsing route coordinates:', error);
-          return;
-        }
-  
-        console.log("offer details route:", route);
-        console.log("offer details coordinates:", coordinates);
- 
-        L.polyline(coordinates, { color: 'blue', weight: 4 }).addTo(this.offerMap);
+      // Set `mapLoading = false` only after the last region is selected
+      if (index === departmentIds.length - 1) {
         this.mapLoading = false;
-      },
-      (error) => {
-        console.error('Error fetching offer details:', error);
       }
-    );
-  }
-  
+    }, (index * 1000) / departmentIds.length  ); // Progressive delay for each region
+  });
+}, 500);
+}
 
 
-  initializeOfferMap() {
-    // Initialize map with a default location and zoom level
-    
-    this.offerMap = L.map('modalMap').setView([48.8566, 2.3522], 7);
-    // Add tile layer
-   
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(this.offerMap);
-    
-  }
 
 
   public isCompany() : boolean {
@@ -569,38 +411,112 @@ export class OfferListComponent implements OnInit, AfterViewInit {
 
 
   applyFilter() {
+    // Get filter date input elements and update filter properties
+    const departStart = document.getElementById('departStartFilter') as HTMLInputElement;
+    const departEnd = document.getElementById('departEndFilter') as HTMLInputElement;
+    const destinationStart = document.getElementById('destinationStartFilter') as HTMLInputElement;
+    const destinationEnd = document.getElementById('destinationEndFilter') as HTMLInputElement;
+    
+    this.filter.depart_date_start = departStart.value;
+    this.filter.depart_date_end = departEnd.value;
+    this.filter.destination_date_start = destinationStart.value;
+    this.filter.destination_date_end = destinationEnd.value;
+    
     console.log('apply filter triggered!!');
-    if (this.searchQuery === '') {
-      if(this.searchedOffers.length > 0)
-      this.filteredOffers = this.searchedOffers;
-    else
-    this.filteredOffers = this.offers;
-    }
-    else{
-      if(this.searchedOffers.length > 0)
-    // Apply search query filter on filteredOffers
-    this.filteredOffers = this.searchedOffers.filter(offer =>
-      offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+    this.filterLoading = true;
   
-    );
-    else{
-      this.filteredOffers = this.offers.filter(offer =>
-        offer.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        offer.description.toLowerCase().includes(this.searchQuery.toLowerCase())
-      );  
-    }
-
+    // Convert filter date values to Date objects (if provided)
+    const filterDepartStart = this.filter.depart_date_start ? new Date(this.filter.depart_date_start) : null;
+    const filterDepartEnd = this.filter.depart_date_end ? new Date(this.filter.depart_date_end) : null;
+    const filterDestStart = this.filter.destination_date_start ? new Date(this.filter.destination_date_start) : null;
+    const filterDestEnd = this.filter.destination_date_end ? new Date(this.filter.destination_date_end) : null;
+  
+    // Get the current selected regions from the observable
+    this.selectedFilterRegion$.pipe(take(1)).subscribe(selectedRegions => {
+      const selectedRegionIds = selectedRegions.map(region => region.id);
+  
+      this.filteredOffers = this.offers.filter(offer => {
+        const matchOrigin = !this.filter.origin || offer.origin === this.filter.origin;
+        const matchDestination = !this.filter.destination || offer.destination === this.filter.destination;
+        const matchVolume = offer.volume >= this.volumeMin && offer.volume <= this.volumeMax;
+        const matchPrice = offer.prix >= this.priceMin && offer.prix <= this.priceMax;
+  
+        // Region matching: true if either all selected region IDs exist in the offer route
+        // or all offer route IDs exist in the selected region IDs.
+        const offerRouteIds = offer.route.split(',');
+        let matchRegion = selectedRegionIds.length === 0 ||
+                          selectedRegionIds.every(id => offerRouteIds.includes(id)) ||
+                          offerRouteIds.every((id: string) => selectedRegionIds.includes(id));
+  
+        // ----- Departure Date Filtering -----
+        let matchDepartDate = true;
+        const offerDepartStart = offer.depart_date_start ? new Date(offer.depart_date_start) : null;
+        const offerDepartEnd = offer.depart_date_end ? new Date(offer.depart_date_end) : null;
+        
+        if (filterDepartStart) {
+          if (offerDepartStart) {
+            if (!offerDepartEnd && !filterDepartEnd) {
+              // Both offer and filter only have a start date; compare them directly.
+              matchDepartDate = offerDepartStart.getTime() === filterDepartStart.getTime();
+            } else if (!offerDepartEnd && filterDepartEnd) {
+              // Offer has only a start date; filter provides a range.
+              matchDepartDate = (offerDepartStart >= filterDepartStart && offerDepartStart <= filterDepartEnd);
+            } else if (offerDepartEnd && !filterDepartEnd) {
+              // Offer has a range; filter only provides a start date.
+              matchDepartDate = (filterDepartStart >= offerDepartStart && filterDepartStart <= offerDepartEnd);
+            } else if (offerDepartEnd && filterDepartEnd) {
+              // Both offer and filter provide ranges; check if the offer's start is within the filter range.
+              matchDepartDate = (offerDepartStart >= filterDepartStart && offerDepartStart <= filterDepartEnd);
+            }
+          } else {
+            matchDepartDate = false;
+          }
+        }
+  
+        // ----- Destination Date Filtering -----
+        let matchDestinationDate = true;
+        const offerDestStart = offer.destination_date_start ? new Date(offer.destination_date_start) : null;
+        const offerDestEnd = offer.destination_date_end ? new Date(offer.destination_date_end) : null;
+  
+        if (filterDestStart) {
+          if (offerDestStart) {
+            if (!offerDestEnd && !filterDestEnd) {
+              // Both offer and filter only have a start date; compare directly.
+              matchDestinationDate = offerDestStart.getTime() === filterDestStart.getTime();
+            } else if (!offerDestEnd && filterDestEnd) {
+              // Offer has only a start date; filter provides a range.
+              matchDestinationDate = (offerDestStart >= filterDestStart && offerDestStart <= filterDestEnd);
+            } else if (offerDestEnd && !filterDestEnd) {
+              // Offer has a range; filter only provides a start date.
+              matchDestinationDate = (filterDestStart >= offerDestStart && filterDestStart <= offerDestEnd);
+            } else if (offerDestEnd && filterDestEnd) {
+              // Both offer and filter provide ranges; check if the offer's start is within the filter range.
+              matchDestinationDate = (offerDestStart >= filterDestStart && offerDestStart <= filterDestEnd);
+            }
+          } else {
+            matchDestinationDate = false;
+          }
+        }
+  
+        // Combine all filter conditions
+        return matchVolume && matchPrice &&
+               matchDepartDate && matchDestinationDate &&
+               (matchOrigin && matchDestination && matchRegion);
+      });
+  
+      this.filterLoading = false;
+      this.filterCloseButton?.nativeElement.click();
+      console.log(selectedRegions);
+    });
   }
-  }
-
+  
   refresh() {
     this.loading = true;
     this.filteredOffers = [ ]
     this.offerService.getOffers().subscribe(
       (offers: any[]) => {
         this.offers = offers.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
-        this.filteredOffers = [...this.offers];
+        this.filteredOffers = [...this.offers]; 
         this.filteredOffers.forEach(offer=>{
           offer.depart_date = JSON.parse(offer.depart_date);
           offer.arrival_date = JSON.parse(offer.arrival_date);
@@ -639,87 +555,6 @@ mapModal(){
   }, 500);
 }
 
-removeAllPins(): void {
-  const originInput = document.getElementById('origin') as HTMLInputElement
-const destinationInput = document.getElementById('destination') as HTMLInputElement
-originInput.value = '';
-destinationInput.value ='';
-  this.routeLayer.clearLayers();
-  this.originPin = undefined;
-  this.destinationPin = undefined;
-  this.routeControl = undefined;
-this.map = this.map.remove();
-this.nb= 0;
-this.map = L.map('map').setView([48.8566, 2.3522], 7);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(this.map);
-this.routeLayer = L.layerGroup().addTo(this.map);
-this.map.on('click', (e: any) => {
-
-  if (!this.originPin) {
-    this.originPin = L.marker(e.latlng,{draggable : true,icon:this.customIcon}).addTo(this.routeLayer);
-    this.reverseGeocode(this.originPin.getLatLng(),document.getElementById('origin') as HTMLInputElement);
-
-  } else if (!this.destinationPin) {
-    this.destinationPin = L.marker(e.latlng, {draggable: true,icon:this.customIcon}).addTo(this.routeLayer);
-    this.reverseGeocode(this.destinationPin.getLatLng(),document.getElementById('destination') as HTMLInputElement);
-  }
-  // Check if both pins are placed
-  if (this.originPin && this.destinationPin && (this.nb ==0)) {
-    this.nb = 1;
-    this.updateRoute(); 
-   
-  }
-  
-  this.originPin!.on('dragend',(e:any)=>{
-    this.reverseGeocode(this.originPin!.getLatLng(),originInput);
-    this.updateRoute();
-  });
-  this.destinationPin!.on('dragend',()=>{
-    this.reverseGeocode(this.destinationPin!.getLatLng(),destinationInput);
-    this.updateRoute();
-  });
-});
-
-}
-reverseGeocode(latlng: L.LatLng, inputElement: HTMLInputElement) {
-  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latlng.lat}&lon=${latlng.lng}`;
-  const geocoder = LCG.geocoder({
-    defaultMarkGeocode: false,
-    geocoder: new (L.Control as any).Geocoder.Nominatim({
-      geocodingQueryParams: {
-        countrycodes: 'fr',  },
-    }),
-  });
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      if (data.address) {
-        const address = `${data.address.road || ''}, ${data.address.city || data.address.town || data.address.village || ''}, ${data.address.state || ''}, ${data.address.country || ''}`;
-        //inputElement.value = address;
-        geocoder.options.geocoder!.geocode(address, (results) => {
-          inputElement.value = results[0].name;
-          if (inputElement.id === 'origin') {
-            this.offerForm.controls['origin'].setValue(results[0].name);
-            this.offerForm.controls['origin'].updateValueAndValidity();
-          } else if (inputElement.id === 'destination') {
-            this.offerForm.controls['destination'].setValue(results[0].name);
-            this.offerForm.controls['destination'].updateValueAndValidity();
-          }
-        });
-
-          
-      } else {
-        inputElement.value = 'Address not found';
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching address:', error);
-      inputElement.value = 'Error fetching address';
-    });
-}
-
 areAllFieldsFilled(): boolean {
   return (
     this.offerForm.get('title')!.value &&
@@ -731,126 +566,164 @@ areAllFieldsFilled(): boolean {
   );
 }
 
-applySmartSearch(departure: string, destination: string, maxDistance: number = 20): void {
-  this.filterLoading= true;
-
-  if (this.filterOption === 'mine' ) {
-    // Filter offers to show only the user's offers
-    this.filteredOffers = this.offers.filter(offer => offer.user_id === this.authService.getUserId());
-  } else {
-    // Show all offers
-    this.filteredOffers = this.offers;
-  }
-
-  if (this.departStartDate ) {
-    this.filteredOffers = this.filteredOffers.filter(offer =>
-      offer.depart_date >= this.departStartDate! 
-    );
-  }
-  if (this.departEndDate) {
-    this.filteredOffers = this.filteredOffers.filter(offer =>
-      offer.depart_date <= this.departEndDate!
-    );
-  }
-  if (this.destinationStartDate ) {
-    this.filteredOffers = this.filteredOffers.filter(offer =>
-      offer.arrival_date >= this.destinationStartDate! 
-    );
-  }
-  if (this.destinationEndDate) {
-    this.filteredOffers = this.filteredOffers.filter(offer =>
-      offer.arrival_date <= this.destinationEndDate!
-    );
-  }
-  // Apply search query filter on filteredOffers
-  
- if(this.departSearch ==='' && this.destinationSearch ===''){
-  this.searchedOffers = this.filteredOffers;
-  this.filterLoading = false;
-  if(this.filterCloseButton){
-    this.filterCloseButton.nativeElement.click();
-  }
- }
-  const geocoder = (L.Control as any).Geocoder.nominatim();
-  // Geocode the departure address
-  geocoder.geocode(departure, (departResults: any) => {
-    if (departResults.length === 0) {
-      console.error('Departure address not found');
-      return;
-    }
-    const departLatLng = new L.LatLng(departResults[0].center.lat, departResults[0].center.lng);
-
-    // Geocode the destination address
-    geocoder.geocode(destination, (destinationResults: any) => {
-      if (destinationResults.length === 0) {
-        console.error('Destination address not found');
-        return;
-      }
-      const destinationLatLng = new L.LatLng(destinationResults[0].center.lat, destinationResults[0].center.lng);
-
-      this.filteredOffers = this.filteredOffers.filter(offer => {
-        if (offer.route) {
-          const route = JSON.parse(offer.route);
-          const routeCoords = route.coordinates.map((coord: any) => [coord.lng, coord.lat]);
-
-          // Convert route coordinates to a LineString for turf.js
-          const line = turf.lineString(routeCoords);
-
-          // Convert depart and destination points to turf points
-          const departPoint = turf.point([departLatLng.lng, departLatLng.lat]);
-          const destinationPoint = turf.point([destinationLatLng.lng, destinationLatLng.lat]);
-
-          // Check if depart and destination points are within maxDistance of the route
-          const departNearRoute = turf.nearestPointOnLine(line, departPoint, { units: 'kilometers' }).properties.dist <= maxDistance;
-          const destinationNearRoute = turf.nearestPointOnLine(line, destinationPoint, { units: 'kilometers' }).properties.dist <= maxDistance;
-
-          if (departNearRoute && destinationNearRoute) {
-            // Ensure depart point comes before destination point along the route
-            const departIndex = routeCoords.findIndex(([lng, lat]: [number, number]) => {
-              return turf.distance(turf.point([lng, lat]), departPoint, { units: 'kilometers' }) <= maxDistance;
-            });
-
-            const destinationIndex = routeCoords.findIndex(([lng, lat]: [number, number]) => {
-              return turf.distance(turf.point([lng, lat]), destinationPoint, { units: 'kilometers' }) <= maxDistance;
-            });
-
-            return departIndex !== -1 && destinationIndex !== -1 && departIndex < destinationIndex;
-          }
-
-          return false;
-        }
-
-        return false;
-      });
-      this.searchedOffers = this.filteredOffers;
-
-    });
-    this.filterLoading = false;
-    if(this.filterCloseButton){
-      this.filterCloseButton.nativeElement.click();
-    }
-  });
-
-}
 
 filterFields(){
-  if((this.departSearch !='' && this.destinationSearch == '') || (this.departSearch =='' && this.destinationSearch !='')){
-    this.filterButton = true;
-  }
-  else{
-    this.filterButton = false;
-  }
+ 
 }
 
 resetForm() {
-  this.departSearch = '';
-  this.destinationSearch = '';
-  this.departStartDate = null;
-  this.departEndDate = null;
-  this.destinationStartDate = null;
-  this.destinationEndDate = null;
-  this.filterOption = 'all';
+
   this.filteredOffers = this.offers;
-  this.searchQuery = '';
+  this.filter = {
+    depart_date_start: '',
+    depart_date_end: '',
+    destination_date_start: '',
+    destination_date_end: '',
+    origin:undefined,
+    destination :undefined,
+    route: '',
+    volume: 0,
+    prix:0,
+  };
+  this.filterCloseButton?.nativeElement.click();
+  this.resetMap(".filter-map");
+}
+resetMap(c : String): void {
+  this.mapService.resetMap(c);
+}
+
+
+updateMinDate1() {
+  const minEndDate = document.getElementById('departStartDate') as HTMLInputElement;
+
+  this.minEndDate1 = new Date(minEndDate.value);
+  this.minEndDate3 = new Date(minEndDate.value);
+ // Ensures min updates dynamically
+  console.log("depart start date : ",this.minEndDate1.toISOString().split('T')[0]);
+  
+}
+updateMinDate2() {
+  const minEndDate = document.getElementById('destinationStartDate') as HTMLInputElement;
+
+  this.minEndDate2 = new Date(minEndDate.value);
+ // Ensures min updates dynamically
+  console.log("depart start date : ",this.minEndDate2.toISOString().split('T')[0]);
+  
+}
+updateMinDate3() {
+  const minEndDate = document.getElementById('departEndDate') as HTMLInputElement;
+
+  this.minEndDate3 = new Date(minEndDate.value);
+ // Ensures min updates dynamically
+  console.log("depart start date : ",this.minEndDate3.toISOString().split('T')[0]);
+  
+}
+
+validateNumber(event: KeyboardEvent) {
+  const charCode = event.key;
+  if (!/^\d$/.test(charCode)) {
+    event.preventDefault(); // Prevent non-numeric input
+  }
+  
+}
+
+updateOfferDetails() {
+ this.isUpdating = true;
+  if (this.offerForm.valid) {
+    const d1 = document.getElementById('departStartDate2') as HTMLInputElement;
+    const d2 = document.getElementById('departEndDate2') as HTMLInputElement;
+    const d3 = document.getElementById('destinationStartDate2') as HTMLInputElement;
+    const d4 = document.getElementById('destinationEndDate2') as HTMLInputElement;
+   // Ensures min updates dynamically
+    this.updateOffer.depart_date_start = (new Date(d1.value)).toISOString().split('T')[0];
+    this.updateOffer.destination_date_start = (new Date(d3.value)).toISOString().split('T')[0];
+    
+     this.updateOffer.depart_date_end = d2 && d2.value? (new Date(d2.value)).toISOString().split('T')[0] : null;
+    this.updateOffer.destination_date_end = d4 && d4.value ? (new Date(d4.value)).toISOString().split('T')[0] : null;
+    this.updateOffer.user_id = 1;
+    this.selectedRegion$.pipe(
+      map(regions => regions.map(region => region.id).join(','))
+    ).subscribe(routeString => {
+      this.updateOffer.route = routeString;
+    });
+
+}
+console.log(this.updateOffer);
+this.updateOffer.origin= this.updateOffer.origin.length >1 ? this.updateOffer.origin : "0"+this.updateOffer.origin;
+this.updateOffer.destination= this.updateOffer.destination.length >1 ? this.updateOffer.destination : "0"+this.updateOffer.destination;
+this.offerService.updateOffer(this.updateOffer.id_offre,this.updateOffer).subscribe(
+    (response)=>{
+this.isUpdating = false;
+this.closeUpdateOfferModal();
+Swal.fire({
+  title: 'Offre modifiée avec succès',
+  icon: 'success',
+  showConfirmButton: false,
+  timer: 1500,
+});
+this.loadOffers();},
+(error)=>{
+  this.isUpdating = false;
+  Swal.fire({
+    title: 'Erreur lors de la modification de l\'offre',
+    icon: 'error',
+    showConfirmButton: false,
+    timer: 1500,
+  });
+}
+);
+}
+
+
+openEditOfferModal(offer: any) {
+  this.mapService.resetMap(".update-map");
+  this.updateOffer = offer;
+  this.offerForm.get('depart_date_start')!.setValue(offer.depart_date_start);
+  this.offerForm.get('arrival_date_start')!.setValue(offer.destination_date_start);
+  this.offerForm.get('depart_date_end')!.setValue(offer.depart_date_end);
+  this.offerForm.get('arrival_date_end')!.setValue(offer.destination_date_end);
+  this.offerForm.get('origin')!.setValue(offer.origin);
+  this.offerForm.get('destination')!.setValue(offer.destination);
+  this.offerForm.get('volume')!.setValue(offer.volume);
+  this.offerForm.get('prix')!.setValue(offer.prix);
+
+  if (!offer || !offer.route) {
+    console.error("Offer not found or route is missing.");
+    return;
+  }
+
+  const departmentIds = offer.route.split(',').map(String);
+  console.log("departmentIds:", departmentIds);
+  
+setTimeout(() => {
+  departmentIds.forEach((deptId: { toString: () => string; }, index: number) => {
+    setTimeout(() => {
+      console.log("Selecting region:", deptId.toString());
+      this.mapService.selectRegion3(deptId.toString());
+
+      // Set `mapLoading = false` only after the last region is selected
+      if (index === departmentIds.length - 1) {
+        this.mapLoading = false;
+      }
+    }, (index * 1000) / departmentIds.length  ); // Progressive delay for each region
+  });
+}, 500);
+}
+
+closeUpdateOfferModal(){
+  if (this.updateCloseButton) {
+    this.updateCloseButton.nativeElement.click();
+  }
+}
+updateRange(type: string) {
+  if (type === "volume") {
+      if (this.volumeMin > this.volumeMax) {
+          this.volumeMin = this.volumeMax;
+      }
+  } else if (type === "price") {
+      if (this.priceMin > this.priceMax) {
+          this.priceMin = this.priceMax;
+      }
+  }
 }
 }

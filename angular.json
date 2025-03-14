@@ -38,7 +38,9 @@
               "src/assets/homepage/vendor/fontawesome-free/css/all.min.css",
               "src/assets/homepage/vendor/glightbox/css/glightbox.min.css",
               "src/assets/homepage/vendor/swiper/swiper-bundle.min.css",
-              "src/assets/homepage/vendor/aos/aos.css"
+              "src/assets/homepage/vendor/aos/aos.css",
+              "node_modules/nouislider/dist/nouislider.css"
+
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.min.js",

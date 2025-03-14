@@ -34,6 +34,9 @@ import { AvisComponent } from './avis/avis.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { DashboardAdminComponent } from './dashboard-admin/dashboard-admin.component';
 import { FranceMapComponent } from './france-map/france-map.component';
+
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 const firebaseConfig = environment.firebaseConfig;
 @NgModule({
   declarations: [
@@ -64,6 +67,7 @@ const firebaseConfig = environment.firebaseConfig;
     ResetPasswordComponent,
     DashboardAdminComponent,
     FranceMapComponent,
+    
    
     
     
@@ -77,13 +81,16 @@ const firebaseConfig = environment.firebaseConfig;
     ReactiveFormsModule,
     AngularFireModule,
     AngularFireAuthModule,
+ 
+     BrowserAnimationsModule,
+
     AngularFireModule.initializeApp(environment.firebaseConfig)
 
     
     
     
   ],
-  providers: [],
+  providers: [    ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

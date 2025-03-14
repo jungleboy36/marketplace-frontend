@@ -14,10 +14,16 @@ export class PresenceService {
 
   updateUserPresence(onlineStatus: boolean,userId :string): Observable<any> {
     // Make a POST request to the Django endpoint to update user presence
-    return this.http.post<any>(`${this.apiUrl}update-user-presence/`, { online: onlineStatus, userId: userId });
+   //return this.http.post<any>(`${this.apiUrl}update-user-presence/`, { online: onlineStatus, userId: userId });
+   return Observable.create((observer: { next: (arg0: string) => void; complete: () => void; }) => {
+    observer.next('success');
+    observer.complete();});
   }
 
   getUserPresence(userId: string): Observable<{ online: boolean }> {
-    return this.http.get<{ online: boolean }>(`${this.apiUrl}get-user-presence/?userId=${userId}`);
+    //return this.http.get<{ online: boolean }>(`${this.apiUrl}get-user-presence/?userId=${userId}`);
+    return Observable.create((observer: { next: (arg0: string) => void; complete: () => void; }) => {
+      observer.next('success');
+      observer.complete();});
   }
 }

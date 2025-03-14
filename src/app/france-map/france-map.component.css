@@ -3,15 +3,22 @@
     stroke: #000;
     stroke-width: 0.5;
     cursor: pointer;
-    transition: fill 0.3s ease;
+    /*transition: fill 0.3s ease;*/
+    transition: fill 0.5s ease-in-out;
+
   }
-  
+  @keyframes pulse {
+    0% { fill: #0078d4; opacity: 1; }
+    50% { fill: #005fa3; opacity: 0.7; }
+    100% { fill: #0078d4; opacity: 1; }
+}
   .land:hover {
     fill: #a3c2f2;
   }
-  
   .land.selected {
-    fill: #0078d4;
+    fill: #0078d4 !important;
+    animation:alternate 1s pulse;
+
   }
   
 
@@ -46,3 +53,11 @@
       color: #2196f3; /* Blue for the arrows */
     }
        
+
+@media screen and (max-width: 991px) {
+  .map {
+    width: 100%;
+    height: 400px;
+  }
+  
+}

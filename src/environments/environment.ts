@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl : 'https://ttqdwdn2-8000.euw.devtunnels.ms',
+  apiUrl : 'http://127.0.0.1:8000',
   mapboxAccessToken: 'pk.eyJ1IjoiYWNocmFmaGFmc2lhIiwiYSI6ImNsdnA4aHNkYTBxemsycW82bXVuc2hmMDcifQ.Fj6AwlA7bJm7oCnQOGJIHg',
   firebaseConfig: {
     apiKey: "AIzaSyA7PVYydIkiCMoy6Vn9Ra9z9-ahWIHUZmw",

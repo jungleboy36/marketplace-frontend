@@ -17,19 +17,20 @@
                     <input type="text" maxlength="1" class="otp-input" (input)="moveToNext($event, 4)" [(ngModel)]="otp[3]" #otp3>
                     <input type="text" maxlength="1" class="otp-input" (input)="moveToNext($event, 5)" [(ngModel)]="otp[4]" #otp4>
                     <input type="text" maxlength="1" class="otp-input" (input)="moveToNext($event, 6)" [(ngModel)]="otp[5]" #otp5>
+                    <div style="align-content:center" *ngIf="loading">
+                        <div class="spinner-border spinner-border-sm"  role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Loading Indicator -->
-                <div class="text-center loading-spinner" *ngIf="loading">
-                    <div class="spinner-border" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                </div>
+             
 
                 <!-- Submit Button (Hidden - Auto Verification on Input) -->
                 <button (click)="verifyOtp()" id="verify-btn"  hidden>Vérifier</button>
                 <div  style="margin-top:30px;">
-                <div [ngStyle]="codeSending?{'cursor':'not-allowed','pointer-events':'none'}:{'cursor':'pointer','pointer-events':'all'}" *ngIf="!codeSent && canResend" (click)="resendOtp()" style="color: #0078d4;"><div class="spinner-border spinner-border-sm" style="scale: 0.7; padding-top:5px;margin-left:5px;" *ngIf="codeSending"  role="status">
+                <div [ngStyle]="codeSending?{'cursor':'not-allowed','pointer-events':'none'}:{'cursor':'pointer','pointer-events':'all'}" *ngIf="canResend" (click)="resendOtp()" style="color: #0078d4;"><div class="spinner-border spinner-border-sm" style="scale: 0.7; padding-top:5px;margin-left:5px;" *ngIf="codeSending"  role="status">
                     <span class="sr-only">Loading...</span>
                 </div><u>Renvoyer le code</u></div>
                 <div *ngIf="codeSent"><i class="bi bi-check-all" style="color: green;"></i> Code renvoyé</div>

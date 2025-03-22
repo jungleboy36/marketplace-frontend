@@ -19,19 +19,12 @@ export class AdminCompaniesComponent {
   }
 
   loadCompanies(): void {
-    const cachedCompanies = localStorage.getItem('companies');
-    
-    if (cachedCompanies) {
-      // If companies are found in localStorage, parse and set them
-      this.companies = JSON.parse(cachedCompanies);
-      this.loading = false;
-    } 
+ 
       // If not, make the API call
       this.adminService.getCompanies().subscribe(
         response => {
           this.companies = response;
           // Store the response in localStorage
-          localStorage.setItem('companies', JSON.stringify(this.companies));
           this.loading = false;
         },
         error => {
@@ -51,20 +44,19 @@ export class AdminCompaniesComponent {
   toggleAccountEnabled(company: any, event: Event): void {
     const target = event.target as HTMLInputElement;
     const newStatus = target.checked; // Access the checked property safely
-    this.selectedUser = company.uid; // Update local state based on the response
+    this.selectedUser = company.id; // Update local state based on the response
     if (company && typeof newStatus === 'boolean') {
-        this.adminService.updateCompanyStatus(company.uid, newStatus).subscribe(
+        this.adminService.updateCompanyStatus(company.id, newStatus).subscribe(
             response => {
                 company.enabled = newStatus;
                 this.selectedUser= '';
-                const companyIndex = this.companies.findIndex(c => c.uid === company.uid);
+                const companyIndex = this.companies.findIndex(c => c.id === company.id);
 
                 if (companyIndex !== -1) {
                   // Update the companies array
                   this.companies[companyIndex].enabled = newStatus;
         
                   // Update the local storage with the modified companies array
-                  localStorage.setItem('companies', JSON.stringify(this.companies));
                 }               // Update local state based on the response
                 /* Swal.fire({
                     icon: 'success',
@@ -88,26 +80,24 @@ export class AdminCompaniesComponent {
 
 
   downloadFile(company: any): void {
-    this.adminService.downloadFile(company.uid).subscribe(
-      response => {
-        const fileUrl = response.file_url;
+  
+        const fileUrl = this.companies.find(c => c.id === company.id)?.file;
         // Use file URL to download the file
         const link = document.createElement('a');
         link.href = fileUrl;
         link.download = 'epreuve '+ company.name;
         link.click();
-      },
-      error => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: 'Erreur lors du téléchargement du fichier.',
-          confirmButtonText: 'OK'
-        });
-      }
-    );
+      
   }
-
+  previewFile(company: any): void {
+    const fileUrl = this.companies.find(c => c.id === company.id)?.file;
+    if (fileUrl) {
+      window.open(fileUrl, '_blank');
+    } else {
+      console.error('File URL not found for company:', company);
+    }
+  }
+  
   isNew(dateInscription: string): boolean {
     const currentDate = new Date();
     const tomorrow = new Date(currentDate);

@@ -33,7 +33,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   minEndDate1: Date = new Date() ;
   minEndDate2: Date = new Date() ;
   minEndDate3: Date = new Date() ;
-
+  user_id : string = '';
   departStartDate: Date | string | null = new Date();
   departEndDate: Date | null = null;
   destinationStartDate: Date | null = null;
@@ -59,7 +59,6 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   searchQuery: string = '';
   filterOption: string = 'all';
   newOffer: any = {
-    user_id: '',
     depart_date_start: '',
     depart_date_end: '',
     destination_date_start: '',
@@ -81,13 +80,14 @@ export class OfferListComponent implements OnInit, AfterViewInit {
     route: '',
     volume: 0,
     prix:0,
+    all:'all'
   };
   volumeMin: number = 0;
   volumeMax: number = 1000;
   priceMin: number = 0;
   priceMax: number = 5000;
   updateOffer: any = {
-    user_id: '',
+    
     depart_date_start: '',
     depart_date_end: '',
     destination_date_start: '',
@@ -126,6 +126,15 @@ export class OfferListComponent implements OnInit, AfterViewInit {
     public mapService: MapService
     
   ) {
+    this.authService.getUser().subscribe(
+      data => {
+        this.user_id = data.id;
+      },
+      error => {
+        console.error('Error fetching user info', error);
+      }
+    );
+    console.log('retrieved user id: ',this.user_id);
     this.departStartDate = this.datePipe.transform(this.departStartDate, 'dd-MM-yyyy');
     this.minDate = this.offerService.getMinDate();
     this.offerForm = this.formBuilder.group({
@@ -308,6 +317,7 @@ $(function() {
         timer: 1500,
       });
         this.loadOffers();
+        this.applyFilter();
       },
       (error) => {
         console.error('Error deleting offer:', error);
@@ -335,7 +345,6 @@ $(function() {
       
        this.newOffer.depart_date_end = d2 && d2.value? (new Date(d2.value)).toISOString().split('T')[0] : null;
       this.newOffer.destination_date_end = d4 && d4.value ? (new Date(d4.value)).toISOString().split('T')[0] : null;
-      this.newOffer.user_id = 1;
       this.selectedRegion$.pipe(
         map(regions => regions.map(region => region.id).join(','))
       ).subscribe(routeString => {
@@ -399,12 +408,9 @@ setTimeout(() => {
 
 
 
-  public isCompany() : boolean {
-    return  this.authService.getRole() == 'company';
-  }
 
   public belongs(user_id : string) : boolean {
-    return this.authService.getUserId() == user_id;
+    return this.user_id == user_id;
   }
 
   // Method to filter offers based on search query
@@ -441,7 +447,10 @@ setTimeout(() => {
         let matchDestination = !this.filter.destination || offer.destination === this.filter.destination || offer.route.includes(this.filter.destination);
         const matchVolume = offer.volume >= this.volumeMin && offer.volume <= this.volumeMax;
         const matchPrice = offer.prix >= this.priceMin && offer.prix <= this.priceMax;
-  
+        let allOffers = true;
+        if(this.filter.all == 'mine'){ 
+          allOffers = offer.user == this.user_id;
+        }
         // Region matching: true if either all selected region IDs exist in the offer route
         // or all offer route IDs exist in the selected region IDs.
         const offerRouteIds = offer.route.split(',');
@@ -502,7 +511,7 @@ setTimeout(() => {
         // Combine all filter conditions
         return matchVolume && matchPrice &&
                matchDepartDate && matchDestinationDate &&
-               matchOrigin && matchDestination && matchRegion;
+               matchOrigin && matchDestination && matchRegion && allOffers;
       });
   
       this.filterLoading = false;
@@ -641,7 +650,6 @@ updateOfferDetails() {
     
      this.updateOffer.depart_date_end = d2 && d2.value? (new Date(d2.value)).toISOString().split('T')[0] : null;
     this.updateOffer.destination_date_end = d4 && d4.value ? (new Date(d4.value)).toISOString().split('T')[0] : null;
-    this.updateOffer.user_id = 1;
     this.selectedRegion$.pipe(
       map(regions => regions.map(region => region.id).join(','))
     ).subscribe(routeString => {
@@ -662,7 +670,8 @@ Swal.fire({
   showConfirmButton: false,
   timer: 1500,
 });
-this.loadOffers();},
+this.loadOffers();
+this.applyFilter();},
 (error)=>{
   this.isUpdating = false;
   Swal.fire({

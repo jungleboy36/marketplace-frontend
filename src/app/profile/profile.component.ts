@@ -32,25 +32,6 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
 
-    // Fetch the logged-in user ID from the AuthService
-    this.uid = this.authService.getUserId();
-    // Initialize the profile form
-    this.initForm();
-    this.loadFeedbacks();
-    // Fetch the user profile data
-    this.profileService.getUserProfile(this.uid!).subscribe(
-      data => {
-        this.userProfile = data;
-        this.avis = this.userProfile.role == 'company';
-        // Populate the form with user data
-        this.profileForm.patchValue(this.userProfile);
-      }
-      ,
-      
-      error => {
-        console.error('Error fetching user profile', error);
-      }
-    );
     
   }
 
@@ -185,19 +166,7 @@ export class ProfileComponent implements OnInit {
 
   // Method to reload profile data
   loadProfileData() {
-    this.profileService.getUserProfile(this.uid!).subscribe(
-      data => {
-        this.userProfile = data;
-        // Populate the form with the updated user data
-        
-        this.profileForm.patchValue(this.userProfile);
-        localStorage.removeItem('profileImageUrl');
-        localStorage.setItem('profileImageUrl',data.image);
-      },
-      error => {
-        console.error('Error fetching user profile', error);
-      }
-    );
+  
   }
   isEmailValid(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

@@ -18,45 +18,24 @@ export class NavbarComponent implements OnInit {
   display_name :any;
   email : any;
   constructor(public authService: AuthService,private profileService: ProfileService,private location: Location) {
-    this.email = localStorage.getItem('email');
-    this.display_name = localStorage.getItem('display_name');
+
      
  
-    const currentUrl = this.location.path();
-    const pusher = new Pusher('1c26d2cd463b15a19666', {
-      cluster: 'eu',
-    })
-    pusher.subscribe(this.authService.getUserId()).bind('new-message',(data:any)=>{
-      if(! currentUrl.includes('chat')){
-        console.log('data username pusher : ',data.username);
-        this.message.username = data.username;
-        this.message.time =  JSON.parse(data.time);
-        this.getUserPicture(data.userId,this.message);
-        this.messages.push(this.message);
-      }
-    })
    }
 
   ngOnInit(): void {
 
     // Retrieve user info from local storage
-    this.authService.infoUser = this.authService.getInfoFromToken();
-    console.log('get info from token : ', this.authService.getInfoFromToken());
-  
-    // Check if profile image URL is available in local storage
-    const storedProfileImageUrl = localStorage.getItem('profileImageUrl');
-  
-      // Use the stored profile image URL
-      this.profileImageUrl = storedProfileImageUrl;
-      console.log("got image from localstorage")
-    
-    
-  
-    this.profileService.profileUpdated.subscribe(() => {
-      // Reload data or take necessary actions
-      this.loadData();
-    });
-    this.loadNotifications();
+    this.authService.getUser().subscribe(
+      data => {
+        this.userInfo = data;
+        this.display_name = data.name;
+        this.email = data.email;
+      },
+      error => {
+        console.error('Error fetching user info', error);
+      }
+    );
   }
   
 
@@ -66,7 +45,7 @@ export class NavbarComponent implements OnInit {
 
   loadData() : void {
     const uid = this.authService.getUserId();
-      this.profileService.getUserProfile(uid!).subscribe(
+      this.profileService.getUser().subscribe(
         data => {
           // Set the profile image URL
           this.profileImageUrl = data.image;
@@ -78,38 +57,14 @@ export class NavbarComponent implements OnInit {
 
   }
 
-  loadNotifications() {
-    // Get the user ID from the authenticated user
-    const userId = this.authService.getUserId();
-  
-    // Call the getNotifications function from the AdminService
-    this.authService.getNotifications(userId).subscribe(
-      (data: any[]) => {
-        // Assign the notifications data to the notifications array
-        this.notifications = data;
-      },
-      (error) => {
-        // Handle any errors
-        console.error('Error fetching notifications:', error);
-      }
-    );
-  }
+
   
   markAllAsRead() {
-    const userId = this.authService.getUserId();
-    this.authService.markAllNotificationsAsRead(userId).subscribe(
-      () => {
-        // After marking all notifications as read, reload the notifications
-        this.notifications = []
-      },
-      (error: any) => {
-        console.error('Error marking all notifications as read:', error);
-      }
-    );
+
   }
 
   getUserPicture(userId: string,message : any) : void {
-    this.profileService.getUserProfile(userId!).subscribe(
+    this.profileService.getUser().subscribe(
       data => {
         // Set the profile image URL
         message.image = data.image;

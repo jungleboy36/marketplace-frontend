@@ -13,9 +13,12 @@ export class ProfileService {
   constructor(private http: HttpClient,) {}
 
   // Method to get the user profile data
-  getUserProfile(uid: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/profile/?uid=${uid}`);
+  getUser(): Observable<any> {
+    return this.http.get(this.apiUrl+'/get-user/', {
+      withCredentials: true  // Needed for Django session
+    });
   }
+  
 
   // Method to update the user profile data
   updateUserProfile(uid: string, updatedData: any): Observable<any> {

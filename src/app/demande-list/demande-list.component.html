@@ -161,7 +161,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button"  class="btn btn-secondary" data-dismiss="modal">Retour</button>
-                        <button type="submit" class="btn btn-primary" *ngIf="this.authService.getRole() != 'client'" (click)="contacter(demandeDetails.user_id,demandeDetails.username)">Contacter</button>
+                        <button type="submit" class="btn btn-primary"  (click)="contacter(demandeDetails.user_id,demandeDetails.username)">Contacter</button>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import { query } from '@angular/animations';
 import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import sweetAlert from 'sweetalert2';
 @Component({
@@ -16,14 +16,20 @@ export class VerifyEmailComponent {
   canResend: boolean = false;
   codeSent: boolean = false;
   codeSending: boolean = false;
-  constructor(
-    private route: ActivatedRoute,
-    private authService: AuthService
-  ) { 
+  constructor( private route: ActivatedRoute, private authService: AuthService,private router: Router) {
+
     this.route.queryParams.subscribe(params => {
       this.email = params['email'] || '';  // Retrieve the email
       console.log("Received Email:", this.email);
     });
+    this.authService.canResend(this.email).subscribe(response => {
+      this.canResend = response.resend;
+    }, error => {
+      if(error.error.error=="already verified"){
+      this.router.navigate(['/login']);  
+      }
+    }
+    );
   }
 moveToNext(event: Event, index: number) {
   const input = event.target as HTMLInputElement;

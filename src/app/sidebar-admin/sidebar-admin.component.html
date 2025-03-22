@@ -1,4 +1,12 @@
-        <!-- Start Sidemenu Area -->
+ <style>
+    .disabled {
+        pointer-events: none;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+ </style>
+ 
+ <!-- Start Sidemenu Area -->
         <div class="sidemenu-area">
             <div class="sidemenu-header">
                 <a href="#" class="navbar-brand d-flex align-items-center">
@@ -30,13 +38,13 @@
                                     <span class="menu-title">Les entreprises</span>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item disabled">
                                 <a href="/admin/clients" class="nav-link">
                                     <span class="icon"><i class='bx bxs-user-detail'></i></span>
                                     <span class="menu-title">Les clients</span>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item disabled">
                                 <a href="/admin/avis" class="nav-link"> 
                                     <span class="icon"><i class='bx bx-detail'></i></span>
                                     <span class="menu-title">Les avis</span>

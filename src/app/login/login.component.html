@@ -19,8 +19,13 @@
                     <div class="login-form">
 
                         <h2>Bienvenue</h2>
+                            <br>
+                         
+                            <div *ngIf="errorMessage" class="alert alert-danger" role="alert"><i class="bi bi-x-circle" style="color: #842029;margin-right:5px;"></i>{{errorMessage}}</div>
+                            <div *ngIf="verifyErrorMessage" class="alert alert-warning" role="alert"><i class="bi bi-exclamation-octagon" style="color: #842029;margin-right:5px;"></i>{{verifyErrorMessage}}</div>
 
                         <form   #registerForm="ngForm" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
                             <div class="form-group">
                                 <input type="text" class="form-control" name="email" id="email" formControlName="email" placeholder="Email" required>
                                 <span class="label-title"><i class='bx bx-user'></i></span>
@@ -33,12 +38,10 @@
 
                     
 
-                            <button type="submit" class="login-btn">S'authentifier</button>
-                            <br><br><div class="d-flex justify-content-center" *ngIf="loading">
-                                <div class="spinner-border" role="status">
-                                    <span class="sr-only">Loading...</span>
-                                </div>
-                            </div>
+                            <button type="submit" class="login-btn" [disabled]="loading"> <div class="spinner-border spinner-border-sm" role="status" style="margin-right:5px;"*ngIf="loading">
+                                <span class="sr-only">Loading...</span>
+                            </div>S'authentifier</button>
+                           
                             <p class="mb-0">Pas de compte? <a href="/register">S'inscrire</a></p>
                             <p class="mb-0"><a href="/reset-password">Mot de passe oublié ? </a></p>
                         </form>

@@ -22,16 +22,7 @@ loadNotifications() {
   const userId = this.authService.getUserId();
 
   // Call the getNotifications function from the AdminService
-  this.adminService.getNotifications(userId).subscribe(
-    (data: any[]) => {
-      // Assign the notifications data to the notifications array
-      this.notifications = data;
-    },
-    (error) => {
-      // Handle any errors
-      console.error('Error fetching notifications:', error);
-    }
-  );
+  
 }
 
 markAllAsRead() {

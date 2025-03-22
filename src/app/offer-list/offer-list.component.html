@@ -114,6 +114,11 @@
         </div>
         <div class="modal-body">
           <div>
+            <select class="form-control" [(ngModel)]="filter.all" style="width: 200px;">
+              <option value="all">Toutes les offres</option>
+              <option value="mine">Mes offres</option>
+
+            </select>
             <div class="row" style="margin-top:20px;margin-bottom:30px;">
                
               <div class="col">
@@ -374,16 +379,16 @@
                             </div>
                         </div>
 
-                        <div class="dropdown">
+                        <div class="dropdown"  *ngIf="belongs(offer.user)" >
                             <button class="dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="bx bx-dots-horizontal-rounded"></i>
                             </button>
-                            <div class="dropdown-menu">
+                            <div class="dropdown-menu" >
                                
-                                <a class="dropdown-item d-flex align-items-center"  style="cursor: default;"  data-toggle="modal" data-target="#updateModal" (click)="openEditOfferModal(offer)">
+                                <a class="dropdown-item d-flex align-items-center"  style="cursor: default;" *ngIf="belongs(offer.user)"  data-toggle="modal" data-target="#updateModal" (click)="openEditOfferModal(offer)">
                                     <i class="bx bx-edit-alt" style="color: blue;"></i> Editer
                                 </a>
-                                <a class="dropdown-item d-flex align-items-center" style="cursor: default;" (click)="deleteOffer(offer.id_offre)">
+                                <a class="dropdown-item d-flex align-items-center" *ngIf="belongs(offer.user)"  style="cursor: default;" (click)="deleteOffer(offer.id_offre)">
                                     <i class="bx bx-trash" style="color:red"></i> Supprimer
                                 </a>
                                

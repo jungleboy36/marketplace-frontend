@@ -26,19 +26,14 @@ import { DashboardAdminComponent } from './dashboard-admin/dashboard-admin.compo
 import { FranceMapComponent } from './france-map/france-map.component';
 const routes: Routes = [
 
-{path:'offers',
-children :[
-  {path:'', component: OfferListComponent , canActivate: [AuthGuard], data: { expectedRole: ['client','company'] }},
-]
-},
-
-  {path:'demandes', component: DemandeListComponent , canActivate: [AuthGuard], data: { expectedRole: ['client','company'] }},
-  {path:'france-map', component: FranceMapComponent , canActivate: [AuthGuard], data: { expectedRole: ['client','company'] }},
-  {path:'chat', component: ChatComponent, canActivate: [AuthGuard], data: { expectedRole: ['client','company'] }},
-  {path:'edit-demande/:id',component:EditDemandeComponent, canActivate: [AuthGuard],data: { expectedRole: 'client' }},
-  {path:'edit-offer/:id',component:EditOfferComponent, canActivate: [AuthGuard],data: { expectedRole: 'company' }},
-  {path:'profile', component:ProfileComponent, canActivate:[AuthGuard] , data: { expectedRole: ['client','company']}},
-  { path: 'details/:id', component: ProfileDetailsComponent, canActivate:[AuthGuard] , data: { expectedRole: ['client','company']} },
+{path:'offers', component: OfferListComponent , canActivate: [AuthGuard], data: { expectedRole: ['user'] }},
+  {path:'demandes', component: DemandeListComponent , canActivate: [AuthGuard], data: { expectedRole: ['user'] }},
+  {path:'france-map', component: FranceMapComponent , canActivate: [AuthGuard], data: { expectedRole: ['user'] }},
+  {path:'chat', component: ChatComponent, canActivate: [AuthGuard], data: { expectedRole: ['user'] }},
+  {path:'edit-demande/:id',component:EditDemandeComponent, canActivate: [AuthGuard],data: { expectedRole: 'user' }},
+  {path:'edit-offer/:id',component:EditOfferComponent, canActivate: [AuthGuard],data: { expectedRole: 'user' }},
+  {path:'profile', component:ProfileComponent, canActivate:[AuthGuard] , data: { expectedRole: ['user']}},
+  { path: 'details/:id', component: ProfileDetailsComponent, canActivate:[AuthGuard] , data: { expectedRole: ['user']} },
   {path:'register',component:RegisterComponent},
   {path:'forbidden',component:ForbiddenComponent},
   {path:'home',component:HomeComponent},

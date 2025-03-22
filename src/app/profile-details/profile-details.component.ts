@@ -18,22 +18,7 @@ export class ProfileDetailsComponent {
     this.route.paramMap.subscribe(params => {
       this.id = params.get('id');
     });
-    this.profileService.getUserProfile(this.id!).subscribe(
-      data => {
-        this.userProfile = data;
-        this.avis = this.userProfile.role == 'company';
-        // Populate the form with user data
-
-        // If image exists, set it as Base64 format
-       
-      },
-      error => {
-        console.error('Error fetching user profile', error);
-      }
-    );
-    console.log("profile details : ", this.userProfile);
-
-    this.loadFeedbacks();
+  
   }
 
   loadFeedbacks(){

@@ -84,7 +84,6 @@ maxBudget: number | null = null;
     this.minDate = this.demandeService.getMinDate();
     console.log("minDate: ",this.minDate);
 
-    this.role = this.authService.getRole();
     this.loadDemandes();
     this.demandeForm = this.formBuilder.group({
       title: ['', Validators.required],

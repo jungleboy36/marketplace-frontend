@@ -130,7 +130,7 @@
                         </div>
                 
                         <div class="dropdown-body">
-                            <ul class="profile-nav p-0 pt-3">
+                            <ul class="profile-nav p-0 pt-3" style="pointer-events: none;">
                                 <li class="nav-item">
                                     <a href="/profile" class="nav-link">
                                         <i class='bx bx-user'></i> <span>Profil</span>
@@ -144,7 +144,7 @@
                         <div class="dropdown-footer">
                             <ul class="profile-nav">
                                 <li class="nav-item">
-                                    <a href="/login" (click)="authService.logout()" class="nav-link">
+                                    <a  (click)="authService.logout()" class="nav-link" style="cursor: pointer;">
                                         <i class='bx bx-log-out'></i> <span>se déconnecter</span>
                                     </a>
                                 </li>

@@ -36,34 +36,34 @@ import { environment } from 'src/environments/environment';
       return this.http.post<any>(this.apiUrl + 'register/', formData);
     }
 
-    // Login a user and store their information
-    login(email: string, password: string): void {
-      this.loadingSubject.next(true); // Set loading to true when login process starts
-      this.auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          this.loadingSubject.next(true); 
-          const user = userCredential.user;
-          console.log("user credentials : ", user);
-          // Check if email is verified and account is enabled
-          console.log("user id: ", user!.uid);
-          this.checkUserStatus(user!.uid).subscribe(enabled => {
-            if (user && user.emailVerified && enabled) {
-              this.loadingSubject.next(true); 
+      /* Login a user and store their information
+      login(email: string, password: string): void {
+        this.loadingSubject.next(true); // Set loading to true when login process starts
+        this.auth.signInWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            this.loadingSubject.next(true); 
+            const user = userCredential.user;
+            console.log("user credentials : ", user);
+            // Check if email is verified and account is enabled
+            console.log("user id: ", user!.uid);
+            this.checkUserStatus(user!.uid).subscribe(enabled => {
+              if (user && user.emailVerified && enabled) {
+                this.loadingSubject.next(true); 
 
-              // Proceed with normal login flow
-              console.log('Login successful');
-              const userId = user!.uid;
-              // Set the user ID in local storage
-              this.updateUserOnlineStatus(userId!, true);
+                // Proceed with normal login flow
+                console.log('Login successful');
+                const userId = user!.uid;
+                // Set the user ID in local storage
+                this.updateUserOnlineStatus(userId!, true);
 
-              localStorage.setItem('userId', userId);
-              localStorage.setItem('display_name', user.displayName!);
-              localStorage.setItem('email', user.email!);
-              this.isLoggedInSubject.next(true);
-              user.getIdToken().then(id_token => {
-                localStorage.setItem('id_token', id_token);
-              });
-              this.getRoleByEmail(email).subscribe(data => {
+                localStorage.setItem('userId', userId);
+                localStorage.setItem('display_name', user.displayName!);
+                localStorage.setItem('email', user.email!);
+                this.isLoggedInSubject.next(true);
+                user.getIdToken().then(id_token => {
+                  localStorage.setItem('id_token', id_token);
+                });
+                this.getRoleByEmail(email).subscribe(data => {
                 console.log('data :', data);
                 this.role = data['role'];
                 console.log('role ! : ', this.role);
@@ -114,23 +114,22 @@ import { environment } from 'src/environments/environment';
           this.loadingSubject.next(false);
         });
     }
+    */
+    login(email: string, password: string): Observable<any> {
+      return this.http.post(this.apiUrl+'login/', 
+        { email, password },
+        { withCredentials: true } 
+      );
+    }
     
-
     // Logout a user and clear their information
-    logout(): void {
-       // Get the current user's ID from local storage
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      // Update user's online status in Firestore to false
-      this.updateUserOnlineStatus(userId, false);
+logout(): void {
+  this.http.post(this.apiUrl+'logout/', {}, { withCredentials: true }).subscribe(
+    () => {
+      this.router.navigate(['/login']);
     }
-      this.auth.signOut().then(() => {
-      localStorage.clear();
-      this.router.navigate(['/login']) 
-      this.isLoggedInSubject.next(false);
-
-      });
-    }
+  );
+}
 
     // Save user information to local storage
   
@@ -160,7 +159,12 @@ import { environment } from 'src/environments/environment';
     } */
 
   getUserId() : string {
-    return localStorage.getItem('userId')!;
+    this.getUser().subscribe(
+      data => {
+        return data.id.toString();
+      }
+    );
+    return '';
   }
 
 
@@ -181,47 +185,6 @@ import { environment } from 'src/environments/environment';
         console.error('Error loading info:', error);
         return null;
     }
-  }
-
-
-
-  getToken() : string | null {
-    return localStorage.getItem('id_token');
-  }
-
-
-  getRoleFromToken(token: string | null): Observable<string> {
-    if (!token) {
-      return of(''); // Return an empty string if the token is null
-    }
-    // Fetch the user's role from Firestore
-    return this.http.get<any>(`${this.apiUrl}get-role/${token}`).pipe(
-      map(response => response.role || '') // Extract the role from the response or return an empty string if not found
-    );
-  }
-
-
-  isLoggedIn(): boolean {
-    return this.isLoggedInSubject.getValue();
-  }
-
-  getRoleByEmail(token: string | null): Observable<any> {
-    // Check if the token is null
-    if (!token) {
-      return of({ error: 'Token is null' }); // Return an observable with an error object
-    }
-
-    // Fetch the user's role from Firestore
-    return this.http.get<any>(`${this.apiUrl}get-role/${token}/`).pipe(
-      catchError(error => {
-        console.error('Error fetching role:', error);
-        return of({ error: 'Failed to fetch role' }); // Return an observable with an error object
-      })
-    );
-  }
-
-  getRole() : string{
-    return localStorage.getItem('role')!;
   }
 
   checkUserStatus(userId: string): Observable<boolean> {
@@ -276,13 +239,15 @@ import { environment } from 'src/environments/environment';
     );
   }
 
-  getUserProfile(uid: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}profile/?uid=${uid}`);
+  getUser(): Observable<any> {
+    return this.http.get(this.apiUrl+'get-user/', {
+      withCredentials: true  // Needed for Django session
+    });
   }
   
   setPicture(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.getUserProfile(this.getUserId()).subscribe(
+      this.getUser().subscribe(
         data => {
           // Set the profile image URL
           console.log("data from set picture: ", data)
@@ -314,4 +279,12 @@ import { environment } from 'src/environments/environment';
   resendOtp(email: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}resend-otp/`, { email });
   }
+  checkSession(): Observable<any> {
+    return this.http.get(this.apiUrl+'check-session/', {
+      withCredentials: true // Send cookies for session auth
+    });
   }
+  canResend(email:string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}canResend/${email}`);
+  }
+}

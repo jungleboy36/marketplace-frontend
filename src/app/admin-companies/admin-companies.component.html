@@ -19,7 +19,7 @@
   
 <br><br>
 <div class="container mt-4">
-    <h2 class="text-center mr-4">Gestion des entreprises</h2>
+    <h2 class="text-center mr-4">Gestion des Sociétés</h2>
     <div class="d-flex justify-content-center" *ngIf="loading">
         <div class="spinner-border" role="status">
             <span class="sr-only">Loading...</span>
@@ -64,6 +64,9 @@
                     </label>
                     <button class="btn btn-primary btn-sm" (click)="downloadFile(company)">
                         <i class="bx bxs-download"></i>
+                    </button>
+                    <button style="margin-left: 5px;" class="btn btn-secondary btn-sm" (click)="previewFile(company)">
+                        <i class="bi bi-eye"></i>
                     </button>
                 </div>
                 

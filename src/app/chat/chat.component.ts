@@ -107,13 +107,7 @@ export class ChatComponent implements OnInit,AfterViewInit {
         });
         
         this.LoadData();
-        this.LoadReceiverData().then(()=>{
-          this.appendFirstScript(this.merchantId).then(() => {
-            console.log('First paypal script loaded successfully');
-            this.appendSecondScript();
-      
-          });
-        });
+       
         this.getPaymentData();
         this.retrieve_feedbackk();
 
@@ -317,39 +311,15 @@ clickCancelButton() {
 
 
 getAutoMessage(){
-  this.profileService.getUserProfile(this.userId).subscribe(data =>
-    {
-      this.autoMessage = data.autoMessage;
-      console.log(this.autoMessage);
-    })
+
 }
 
 LoadData(){
-    this.profileService.getUserProfile(this.userId).subscribe(data =>
-      {
-        //console.log('data from chat component: ',data);
 
-        //console.log('role from chat component: ',data.role);
-        
-        this.paypalExist = !!data.paypalEmail;
-        console.log('paypal email data: ',this.paypalExist);
-      })
   
 }
 
-LoadReceiverData():Promise<void>{
-  return new Promise<void>((resolve, reject) => {
-    console.log('load receiver data :', this.selectedConversation);
-  this.profileService.getUserProfile(this.getSenderId(this.selectedConversation)!).subscribe(data =>
-    {
-      //console.log('data from chat component: ',data);
 
-    console.log('MERCHANT ID: ',data.paypalEmail);
-    this.merchantId = data.paypalEmail;
-    resolve();
-    })
-  });
-}
 appendFirstScript(merchantId : string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     // Create the first script element

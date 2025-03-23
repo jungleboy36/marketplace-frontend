@@ -59,6 +59,7 @@ export class OfferListComponent implements OnInit, AfterViewInit {
   searchQuery: string = '';
   filterOption: string = 'all';
   newOffer: any = {
+    user_id: '',
     depart_date_start: '',
     depart_date_end: '',
     destination_date_start: '',
@@ -355,6 +356,7 @@ $(function() {
   console.log(this.newOffer);
   this.newOffer.origin= this.newOffer.origin.length >1 ? this.newOffer.origin : "0"+this.newOffer.origin;
   this.newOffer.destination= this.newOffer.destination.length >1 ? this.newOffer.destination : "0"+this.newOffer.destination;
+  this.newOffer.user_id = this.user_id;
   this.offerService.addOffer(this.newOffer).subscribe(
      (response)=>{
   this.isAdding = false;

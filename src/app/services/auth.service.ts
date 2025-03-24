@@ -279,6 +279,6 @@ logout(): void {
     });
   }
   canResend(email:string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}canResend/${email}`);
+    return this.http.get<any>(`${this.apiUrl}canResend/`+email);
   }
 }

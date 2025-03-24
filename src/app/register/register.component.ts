@@ -17,46 +17,39 @@ export class RegisterComponent {
   // Handle file input change
 
   onFileChange(event: Event): void {
-      const input = event.target as HTMLInputElement;
-      const file = input.files && input.files[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files[0];
   
-      if (file) {
-          const maxSize = 5 * 1024 * 1024; // 5MB limit
+    if (file) {
+      const maxSize = 5 * 1024 * 1024;
   
-          // Validate file type
-          if (file.type !== "application/pdf") {
-              Swal.fire({
-                  icon: "error",
-                  title: "Format invalide",
-                  text: "Seuls les fichiers PDF sont autorisés.",
-                  confirmButtonText: "OK"
-              });
-              input.value = ""; // Reset input field
-              return;
-          }
-  
-          // Validate file size
-          if (file.size > maxSize) {
-              Swal.fire({
-                  icon: "error",
-                  title: "Fichier trop volumineux",
-                  text: "La taille du fichier dépasse la limite de 5 Mo.",
-                  confirmButtonText: "OK"
-              });
-              input.value = ""; // Reset input field
-              return;
-          }
-  
-          // Create a FileReader to convert the file to Base64
-          const reader = new FileReader();
-          reader.onload = () => {
-              this.formData.file = reader.result as string;
-          };
-  
-          // Read the file as a Data URL (Base64 format)
-          reader.readAsDataURL(file);
+      if (file.type !== "application/pdf") {
+        Swal.fire({
+          icon: "error",
+          title: "Format invalide",
+          text: "Seuls les fichiers PDF sont autorisés.",
+          confirmButtonText: "OK"
+        });
+        input.value = "";
+        return;
       }
+  
+      if (file.size > maxSize) {
+        Swal.fire({
+          icon: "error",
+          title: "Fichier trop volumineux",
+          text: "La taille du fichier dépasse la limite de 5 Mo.",
+          confirmButtonText: "OK"
+        });
+        input.value = "";
+        return;
+      }
+  
+      // ✅ Store the real file object
+      this.formData.file = file;
+    }
   }
+  
   
 
   submitForm(): void {
@@ -97,13 +90,15 @@ export class RegisterComponent {
     }
 
     // Ensure the Base64 encoded file content is included in the form data
+
     const formData = new FormData();
     formData.append('name', this.formData.name);
     formData.append('email', this.formData.email);
     formData.append('password', this.formData.password);
     formData.append('password2', this.formData.password2);
-    formData.append('image','');
-    formData.append('file', this.formData.file);
+    formData.append('image', ''); // Optional
+    formData.append('file', this.formData.file); // ✅ Real File object
+    
    
     // Call the register service
     this.registerService.register(formData).subscribe(

@@ -79,24 +79,31 @@ export class AdminCompaniesComponent {
 
 
 
-  downloadFile(company: any): void {
-  
-        const fileUrl = this.companies.find(c => c.id === company.id)?.file;
-        // Use file URL to download the file
-        const link = document.createElement('a');
-        link.href = fileUrl;
-        link.download = 'epreuve '+ company.name;
-        link.click();
-      
+downloadFile(company: any): void {
+  const relativePath = this.companies.find(c => c.id === company.id)?.file;
+  const fileUrl = relativePath ? `/api/media/${relativePath}` : '';
+
+  if (fileUrl) {
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = 'epreuve_' + company.name + '.pdf';
+    link.click();
+  } else {
+    console.error('File not found');
   }
-  previewFile(company: any): void {
-    const fileUrl = this.companies.find(c => c.id === company.id)?.file;
-    if (fileUrl) {
-      window.open(fileUrl, '_blank');
-    } else {
-      console.error('File URL not found for company:', company);
-    }
+}
+
+previewFile(company: any): void {
+  const relativePath = this.companies.find(c => c.id === company.id)?.file;
+  const fileUrl = relativePath ? `/api/media/${relativePath}` : '';
+
+  if (fileUrl) {
+    window.open(fileUrl, '_blank');
+  } else {
+    console.error('File URL not found for company:', company);
   }
+}
+
   
   isNew(dateInscription: string): boolean {
     const currentDate = new Date();

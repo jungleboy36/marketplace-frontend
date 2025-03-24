@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl : 'http://167.172.109.20:8000',
+  apiUrl : '/api/',
   mapboxAccessToken: 'pk.eyJ1IjoiYWNocmFmaGFmc2lhIiwiYSI6ImNsdnA4aHNkYTBxemsycW82bXVuc2hmMDcifQ.Fj6AwlA7bJm7oCnQOGJIHg',
   firebaseConfig: {
     apiKey: "AIzaSyA7PVYydIkiCMoy6Vn9Ra9z9-ahWIHUZmw",

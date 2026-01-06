@@ -1,27 +1,61 @@
-# Marketplace
+<h2>🌟 Assistline Frontend</h2>
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.2.13.
+Angular web app providing a responsive, modern interface for Assistline with real-time chat, PayPal payments, and interactive maps.
 
-## Development server
+🛠️ Tech Stack
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Framework: Angular & TypeScript
 
-## Code scaffolding
+Styling: Bootstrap / Angular Material / CSS
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+HTTP: HttpClient with interceptors
 
-## Build
+State: RxJS & Angular services
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Realtime: WebSockets
 
-## Running unit tests
+Maps: Google Maps API
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Payments: PayPal SDK
 
-## Running end-to-end tests
+Auth: JWT token management
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+✨ Core Features
 
-## Further help
+🔑 Authentication: JWT login/registration, role-based routes
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+💬 Chat: Real-time messaging, conversation history, typing indicators
+
+💰 Payments: PayPal integration with order & status tracking
+
+📍 Maps: Location visualization, nearby search, distance calculation
+
+📱 Responsive Design: Mobile-first, adaptive layouts
+
+📝 Forms: Reactive forms with validation & auto-save
+
+🔒 Security: HTTP interceptors, input sanitization, route guards
+
+⚡ Quick Setup
+git clone https://github.com/jungleboy36/assistline_frontend.git
+cd assistline_frontend
+npm install
+# Configure src/environments/environment.ts with API, Firebase, PayPal, Maps
+ng serve   # http://localhost:4200/
+ng build --configuration production
+
+📡 API Highlights
+
+Auth: /api/auth/login, /register
+
+Assistants: /api/assistants/
+
+Payments: /api/payments/initiate
+
+Chat: /api/messages/
+
+Locations: /api/locations/nearby
+
+👤 Author
+
+GitHub: @jungleboy36
